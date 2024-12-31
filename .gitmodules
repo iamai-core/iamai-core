@@ -1,0 +1,10 @@
+[submodule "llm.c"]
+	path = llm.c
+	url = https://github.com/karpathy/llm.c.git
+	branch = llama3
+[submodule "llama.cpp"]
+	path = llama.cpp
+	url = https://github.com/ggerganov/llama.cpp.git
+[submodule "ggml"]
+	path = ggml
+	url = https://github.com/ggerganov/ggml.git
