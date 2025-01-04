@@ -5,6 +5,8 @@
 [submodule "llama.cpp"]
 	path = llama.cpp
 	url = https://github.com/ggerganov/llama.cpp.git
+	branch = master
 [submodule "ggml"]
 	path = ggml
 	url = https://github.com/ggerganov/ggml.git
+	branch = master
