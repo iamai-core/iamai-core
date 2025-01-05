@@ -2,29 +2,23 @@
 #include <stdexcept>
 #include "interface.h"
 
-int main() {
+int main(int argc, char** argv) {
     try {
         // Initialize interface with hardcoded model path
         // TODO: Replace with your actual model path
         const std::string model_path = "models/tinyllama-1b-1431k-3T-q8_0.gguf";
         Interface myInterface(model_path);
 
-        // Test tokenization
+        // Test tokenization and detokenization
         const std::string test_text = "Hello, this is a test!";
-        std::cout << "Input text: " << test_text << std::endl;
+        std::cout << "Original text: " << test_text << std::endl;
 
+        // Convert to tokens
         myInterface.share(test_text);
-        std::vector<int> tokens = myInterface.collect();
 
-        // Print tokens
-        std::cout << "Tokens (" << tokens.size() << "): ";
-        for (size_t i = 0; i < tokens.size(); i++) {
-            if (i > 0) {
-                std::cout << ", ";
-            }
-            std::cout << tokens[i];
-        }
-        std::cout << std::endl;
+        // Convert back to text
+        std::string result = myInterface.collect();
+        std::cout << "Reconstructed text: " << result << std::endl;
 
         return 0;
     } catch (const std::exception& e) {

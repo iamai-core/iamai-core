@@ -11,13 +11,13 @@ public:
     Interface(const std::string& modelPath);
     ~Interface();
 
-    void share(const std::string& text_);
-    std::vector<int> collect();
+    void share(const std::string& text);
+    std::string collect();
 
 private:
     llama_context* ctx;
     llama_model* model;
-    std::string text;
+    std::vector<llama_token> tokens;
 };
 
 #endif // INTERFACE_H

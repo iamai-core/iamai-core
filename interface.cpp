@@ -35,24 +35,32 @@ Interface::~Interface() {
     }
 }
 
-void Interface::share(const std::string& text_) {
-    text = text_;
-}
+void Interface::share(const std::string& text) {
+    // Get required token count (returns negative of required size)
+    int n_tokens = llama_tokenize(model, text.c_str(), text.length(), NULL, 0, true, false);
+    n_tokens = -n_tokens; // Convert to positive count
 
-std::vector<int> Interface::collect() {
-    if (text.empty()) {
-        return std::vector<int>();
-    }
-
-    // First get required token count by passing NULL
-    int n_tokens = -llama_tokenize(model, text.c_str(), text.length(), NULL, 0, true, false);
-    std::vector<int> tokens(n_tokens);
-
-    // Actually tokenize into our prepared vector
+    // Allocate vector and tokenize
+    tokens.resize(n_tokens);
     if (llama_tokenize(model, text.c_str(), text.length(), tokens.data(), tokens.size(), true, false) < 0) {
-        fprintf(stderr, "error: failed to tokenize string\n");
         throw std::runtime_error("Tokenization failed");
     }
+}
 
-    return tokens;
+std::string Interface::collect() {
+    if (tokens.empty()) {
+        return "";
+    }
+
+    std::string result;
+    for (const auto& token : tokens) {
+        char buf[8] = {0};
+        int n_chars = llama_token_to_piece(model, token, buf, sizeof(buf), 0, true);
+        if (n_chars < 0) {
+            throw std::runtime_error("Failed to convert token to text");
+        }
+        result.append(buf, n_chars);
+    }
+
+    return result;
 }
