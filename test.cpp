@@ -4,21 +4,23 @@
 
 int main(int argc, char** argv) {
     try {
-        // Initialize interface with hardcoded model path
+        // Initialize interface with model path
         // TODO: Replace with your actual model path
-        const std::string model_path = "models/tinyllama-1b-1431k-3T-q8_0.gguf";
+        const std::string model_path = "../../../models/tinyllama-2-1b-miniguanaco.Q4_K_M.gguf";
         Interface myInterface(model_path);
 
-        // Test tokenization and detokenization
-        const std::string test_text = "Hello, this is a test!";
-        std::cout << "Original text: " << test_text << std::endl;
+        // Configure generation parameters
+        myInterface.setMaxTokens(256);     // Generate up to 256 tokens
+        myInterface.setThreads(6);        // Use 6 threads
+        myInterface.setBatchSize(1);      // Process 1 token at a time
 
-        // Convert to tokens
-        myInterface.share(test_text);
+        // Test prompt for generation
+        const std::string prompt = "Write a short story about a robot learning to paint:";
+        std::cout << "Prompt: " << prompt << std::endl << std::endl;
 
-        // Convert back to text
-        std::string result = myInterface.collect();
-        std::cout << "Reconstructed text: " << result << std::endl;
+        // Generate text
+        std::string result = myInterface.generate(prompt);
+        std::cout << "Generated text: " << result << std::endl;
 
         return 0;
     } catch (const std::exception& e) {
