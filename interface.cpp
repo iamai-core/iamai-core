@@ -7,7 +7,7 @@ Interface::Interface(const std::string& modelPath) {
 
     // Initialize model parameters
     auto model_params = llama_model_default_params();
-    model_params.n_gpu_layers = 100;
+    // model_params.n_gpu_layers = 100;
     model = llama_load_model_from_file(modelPath.c_str(), model_params);
 
     if (model == NULL) {
