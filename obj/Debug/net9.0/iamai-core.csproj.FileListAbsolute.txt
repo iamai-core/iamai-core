@@ -1,0 +1,30 @@
+C:\Side Projects\IAMAI\iamai-core\obj\Debug\net9.0\iamai-core.GeneratedMSBuildEditorConfig.editorconfig
+C:\Side Projects\IAMAI\iamai-core\obj\Debug\net9.0\iamai-core.AssemblyInfoInputs.cache
+C:\Side Projects\IAMAI\iamai-core\obj\Debug\net9.0\iamai-core.AssemblyInfo.cs
+C:\Side Projects\IAMAI\iamai-core\obj\Debug\net9.0\iamai-core.csproj.CoreCompileInputs.cache
+C:\Side Projects\IAMAI\iamai-core\obj\Debug\net9.0\iamai-core.sourcelink.json
+C:\Side Projects\IAMAI\iamai-core\bin\Debug\net9.0\iamai-core.exe
+C:\Side Projects\IAMAI\iamai-core\bin\Debug\net9.0\iamai-core.deps.json
+C:\Side Projects\IAMAI\iamai-core\bin\Debug\net9.0\iamai-core.runtimeconfig.json
+C:\Side Projects\IAMAI\iamai-core\bin\Debug\net9.0\iamai-core.dll
+C:\Side Projects\IAMAI\iamai-core\bin\Debug\net9.0\iamai-core.pdb
+C:\Side Projects\IAMAI\iamai-core\obj\Debug\net9.0\iamai-core.dll
+C:\Side Projects\IAMAI\iamai-core\obj\Debug\net9.0\refint\iamai-core.dll
+C:\Side Projects\IAMAI\iamai-core\obj\Debug\net9.0\iamai-core.pdb
+C:\Side Projects\IAMAI\iamai-core\obj\Debug\net9.0\iamai-core.genruntimeconfig.cache
+C:\Side Projects\IAMAI\iamai-core\obj\Debug\net9.0\ref\iamai-core.dll
+C:\Side-Projects\IAMAI\iamai-core\bin\Debug\net9.0\iamai-core.exe
+C:\Side-Projects\IAMAI\iamai-core\bin\Debug\net9.0\iamai-core.deps.json
+C:\Side-Projects\IAMAI\iamai-core\bin\Debug\net9.0\iamai-core.runtimeconfig.json
+C:\Side-Projects\IAMAI\iamai-core\bin\Debug\net9.0\iamai-core.dll
+C:\Side-Projects\IAMAI\iamai-core\bin\Debug\net9.0\iamai-core.pdb
+C:\Side-Projects\IAMAI\iamai-core\obj\Debug\net9.0\iamai-core.GeneratedMSBuildEditorConfig.editorconfig
+C:\Side-Projects\IAMAI\iamai-core\obj\Debug\net9.0\iamai-core.AssemblyInfoInputs.cache
+C:\Side-Projects\IAMAI\iamai-core\obj\Debug\net9.0\iamai-core.AssemblyInfo.cs
+C:\Side-Projects\IAMAI\iamai-core\obj\Debug\net9.0\iamai-core.csproj.CoreCompileInputs.cache
+C:\Side-Projects\IAMAI\iamai-core\obj\Debug\net9.0\iamai-core.sourcelink.json
+C:\Side-Projects\IAMAI\iamai-core\obj\Debug\net9.0\iamai-core.dll
+C:\Side-Projects\IAMAI\iamai-core\obj\Debug\net9.0\refint\iamai-core.dll
+C:\Side-Projects\IAMAI\iamai-core\obj\Debug\net9.0\iamai-core.pdb
+C:\Side-Projects\IAMAI\iamai-core\obj\Debug\net9.0\iamai-core.genruntimeconfig.cache
+C:\Side-Projects\IAMAI\iamai-core\obj\Debug\net9.0\ref\iamai-core.dll
