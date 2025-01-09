@@ -26,6 +26,17 @@ add_subdirectory(llama.cpp)
 add_executable(iamai-core iamai-core.cpp interface.cpp)
 target_link_libraries(iamai-core PRIVATE llama)
 
+# Main dll/so/dylib
+if(WIN32)
+    add_definitions(-DIAMAI_EXPORT)
+endif()
+add_library(iamai-core-lib SHARED iamai-core-lib.cpp interface.cpp)
+set_target_properties(iamai-core-lib PROPERTIES
+    OUTPUT_NAME "iamai-core"
+    PREFIX ""
+)
+target_link_libraries(iamai-core-lib PRIVATE llama)
+
 # Test executable
 add_executable(test test.cpp interface.cpp)
 target_link_libraries(test PRIVATE llama)
