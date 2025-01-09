@@ -10,9 +10,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 # Disable all CPU-specific optimizations
-set(LLAMA_NATIVE OFF CACHE BOOL "disable CPU optimizations" FORCE)
-set(GGML_NO_ACCELERATE ON CACHE BOOL "disable Accelerate framework" FORCE)
-set(GGML_CPU_FEATURES_DISABLE ON CACHE BOOL "disable CPU features" FORCE)
+#set(LLAMA_NATIVE OFF CACHE BOOL "disable CPU optimizations" FORCE)
+#set(GGML_NO_ACCELERATE ON CACHE BOOL "disable Accelerate framework" FORCE)
+#set(GGML_CPU_FEATURES_DISABLE ON CACHE BOOL "disable CPU features" FORCE)
 
 # Enable CUDA but disable other acceleration
 set(GGML_CUDA ON CACHE BOOL "Enable CUDA" FORCE)
