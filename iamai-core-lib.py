@@ -1,9 +1,11 @@
 from ctypes import *
 import os
 from pathlib import Path
+from ctypes import *
 
-# Relative path to the library from this script
-dll_dir = r"C:\Side Projects\IAMAI\iamai-core\build\bin\Debug"
+# Get script directory and construct relative path to DLL directory
+script_dir = os.path.dirname(os.path.abspath(__file__))
+dll_dir = os.path.join(script_dir, "build", "bin", "Debug")
 os.add_dll_directory(dll_dir)
 LIBRARY_PATH = os.path.join(dll_dir, "iamai-core.dll")
 
