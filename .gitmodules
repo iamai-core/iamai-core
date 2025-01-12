@@ -10,3 +10,7 @@
 	path = ggml
 	url = https://github.com/ggerganov/ggml.git
 	branch = master
+[submodule "whisper.cpp"]
+	path = whisper.cpp
+	url = https://github.com/ggerganov/whisper.cpp.git
+	branch = master
