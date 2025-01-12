@@ -1,3 +1,5 @@
+## C/C++
+
 # Prerequisites
 *.d
 
@@ -31,6 +33,90 @@
 *.out
 *.app
 
+
+
+## CMake
+
 build/
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+compile_commands.json
+
+
+
+## Python
+
+# Python bytecode
+__pycache__/
+*.py[cod]
+
+# Virtual environments
+venv/
+env/
+.env
+
+# Distribution/packaging
+dist/
+build/
+*.egg-info/
+
+# Testing and coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# IDE settings
+.vscode/
+.idea/
+
+# Local database files
+*.db
+*.sqlite3
+
+# Logs
+*.log
+
+
+
+## C#
+
+# Build results
+[Dd]ebug/
+[Rr]elease/
+[Bb]in/
+[Oo]bj/
+
+# Visual Studio files
+.vs/
+*.suo
+*.user
+*.sln.docstates
+*.sln
+*.csproj
+
+# Build and debug files
+*.pdb
+*.dll
+*.exe
+
+# Cache and temporary files
+[Tt]emp/
+*.tmp
+*.log
+
+# IDE-specific files
+.idea/
+*.userprefs
+
+# NuGet Packages
+*.nupkg
+packages/
+*.nuget.props
+*.nuget.targets
+
+
+
+## Project specific
 
 models/
