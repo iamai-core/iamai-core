@@ -1,5 +1,4 @@
 {
-    "cmake.configureOnOpen": false,
     "files.associations": {
         "*.vrsettings": "json",
         "*.json": "jsonc",
