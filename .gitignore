@@ -92,8 +92,6 @@ htmlcov/
 *.suo
 *.user
 *.sln.docstates
-*.sln
-*.csproj
 
 # Build and debug files
 *.pdb
