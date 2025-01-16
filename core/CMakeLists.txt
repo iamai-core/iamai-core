@@ -28,7 +28,7 @@ set(GGML_OPENBLAS OFF CACHE BOOL "disable OpenBLAS" FORCE)
 add_subdirectory(${CMAKE_SOURCE_DIR}/llama.cpp ${CMAKE_BINARY_DIR}/llama.cpp)
 
 # Main executable
-add_executable(iamai-core iamai-core.cpp interface.cpp)
+add_executable(iamai-core iamai-core.cpp interface.cpp win.rc)
 target_link_libraries(iamai-core PRIVATE llama)
 
 # Main dll/so/dylib
@@ -40,5 +40,5 @@ set_target_properties(iamai-core-lib PROPERTIES
 target_link_libraries(iamai-core-lib PRIVATE llama)
 
 # Main test executable
-add_executable(test test.cpp interface.cpp)
+add_executable(test test.cpp interface.cpp win.rc)
 target_link_libraries(test PRIVATE llama)

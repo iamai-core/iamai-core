@@ -1,0 +1,32 @@
+// app.rc
+#include <windows.h>
+
+IDI_ICON1 ICON "iamai.ico"
+
+1 VERSIONINFO
+FILEVERSION     1,0,0,0
+PRODUCTVERSION  1,0,0,0
+FILEFLAGSMASK   VS_FFI_FILEFLAGSMASK
+FILEFLAGS       0
+FILEOS          VOS__WINDOWS32
+FILETYPE        VFT_APP
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904E4" // US English, Unicode
+        BEGIN
+            VALUE "CompanyName",      "iamai-core"
+            VALUE "FileDescription",  "iamai-core"
+            VALUE "FileVersion",      "1.0.0.0"
+            VALUE "InternalName",     "iamai-core"
+            VALUE "LegalCopyright",   "Copyright (C) 2025 iamai-core"
+            VALUE "OriginalFilename", "iamai-core.exe"
+            VALUE "ProductName",      "iamai-core"
+            VALUE "ProductVersion",   "1.0.0.0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1252 // US English, Multilingual
+    END
+END
