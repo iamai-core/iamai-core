@@ -16,16 +16,25 @@ FolderManager& FolderManager::getInstance() {
 }
 
 std::string FolderManager::getWindowsFolder(int folderId) const {
-    wchar_t path[MAX_PATH];
-    std::string result;
-    
-    if (SUCCEEDED(SHGetFolderPathW(NULL, folderId, NULL, SHGFP_TYPE_CURRENT, path))) {
-        std::wstring wPath(path);
-        result = std::string(wPath.begin(), wPath.end());
+    if (folderId == CSIDL_LOCAL_APPDATA) {
+        wchar_t path[MAX_PATH];
+        if (SUCCEEDED(SHGetFolderPathW(NULL, folderId, NULL, SHGFP_TYPE_CURRENT, path))) {
+            std::wstring wPath(path);
+            return std::string(wPath.begin(), wPath.end());
+        }
+    }
+    else if (folderId == CSIDL_PERSONAL) {
+        char* userProfile = nullptr;
+        size_t len;
+        _dupenv_s(&userProfile, &len, "USERPROFILE");
+        if (userProfile != nullptr) {
+            std::string documentsPath = std::string(userProfile) + "\\Documents";
+            free(userProfile);
+            return documentsPath;
+        }
     }
     
-    std::cout << "Getting folder for ID " << folderId << ": " << result << std::endl;
-    return result;
+    return "";
 }
 
 bool FolderManager::createFolderStructure() {
