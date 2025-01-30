@@ -13,6 +13,8 @@ add_custom_target(copy_cuda_dlls ALL
     COMMENT "Copying CUDA DLLs to bin/${CONFIG} directory"
 )
 
+add_subdirectory(${CMAKE_SOURCE_DIR}/llama.cpp ${CMAKE_BINARY_DIR}/llama.cpp)
+
 # Find required Windows libraries
 find_library(SHELL32_LIBRARY Shell32)
 find_library(OLE32_LIBRARY Ole32)
