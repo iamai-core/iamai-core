@@ -48,10 +48,11 @@ Interface::Interface(const std::string& modelPath) {
     sampler = llama_sampler_chain_init(sparams);
 
     // Add sampling settings optimized for GPU
-    llama_sampler_chain_add(sampler, llama_sampler_init_top_k(40));
-    llama_sampler_chain_add(sampler, llama_sampler_init_top_p(0.95f, 1));
-    llama_sampler_chain_add(sampler, llama_sampler_init_temp(0.8f));
+    llama_sampler_chain_add(sampler, llama_sampler_init_top_k(50));
+    llama_sampler_chain_add(sampler, llama_sampler_init_top_p(0.9f, 1));
+    llama_sampler_chain_add(sampler, llama_sampler_init_temp(0.7f));
     llama_sampler_chain_add(sampler, llama_sampler_init_dist(LLAMA_DEFAULT_SEED));
+    
 
     fprintf(stderr, "Initialization complete\n");
 }
@@ -104,8 +105,15 @@ std::string Interface::sampleTokens(int& n_past, bool& should_stop) {
 }
 
 std::string Interface::generate(const std::string& prompt) {
-    // Tokenize the prompt
-    int n_prompt_tokens = -llama_tokenize(vocab, prompt.c_str(), prompt.length(), NULL, 0, true, false);
+    // Add DeepSeek-specific formatting
+    const std::string formatted_prompt = 
+        "<｜begin▁of▁sentence｜>You are a helpful AI assistant.\n\n"
+        "User: " + prompt + "\n"
+        "Assistant: ";
+
+    // Tokenize the formatted prompt
+    int n_prompt_tokens = -llama_tokenize(vocab, formatted_prompt.c_str(), 
+                                        formatted_prompt.length(), NULL, 0, true, false);    
     std::vector<llama_token> tokens(n_prompt_tokens);
 
     if (llama_tokenize(vocab, prompt.c_str(), prompt.length(), tokens.data(), tokens.size(), true, false) < 0) {
@@ -130,5 +138,19 @@ std::string Interface::generate(const std::string& prompt) {
         result += sampleTokens(n_past, should_stop);
     }
 
-    return result;
+    return clean_response(result);
+}
+
+std::string Interface::clean_response(const std::string& response) {
+    size_t end_pos = response.find("</s>");
+    if(end_pos != std::string::npos) {
+        return response.substr(0, end_pos);
+    }
+    
+    end_pos = response.find("\nUser:");
+    if(end_pos != std::string::npos) {
+        return response.substr(0, end_pos);
+    }
+    
+    return response;
 }

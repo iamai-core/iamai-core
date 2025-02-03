@@ -9,6 +9,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 
 add_subdirectory(core)
-#add_subdirectory(test-whisper)
+add_subdirectory(test-whisper)
 #add_subdirectory(test-ggml)
 #add_subdirectory(test-llmc)
