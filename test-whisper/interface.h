@@ -20,10 +20,9 @@ public:
     std::string generate(const std::string& prompt);
 
 private:
-    llama_context* ctx = nullptr;
-    llama_model* model = nullptr;
-    const llama_vocab* vocab = nullptr;
-    llama_sampler* sampler = nullptr;
+    llama_context* ctx;
+    llama_model* model;
+    llama_sampler* sampler;
 
     int max_tokens = 32;    // Default max tokens to generate
     int n_threads = 4;      // Default number of threads

@@ -48,11 +48,10 @@ Interface::Interface(const std::string& modelPath) {
     sampler = llama_sampler_chain_init(sparams);
 
     // Add sampling settings optimized for GPU
-    llama_sampler_chain_add(sampler, llama_sampler_init_top_k(50));
-    llama_sampler_chain_add(sampler, llama_sampler_init_top_p(0.9f, 1));
-    llama_sampler_chain_add(sampler, llama_sampler_init_temp(0.5f));
+    llama_sampler_chain_add(sampler, llama_sampler_init_top_k(40));
+    llama_sampler_chain_add(sampler, llama_sampler_init_top_p(0.95f, 1));
+    llama_sampler_chain_add(sampler, llama_sampler_init_temp(0.8f));
     llama_sampler_chain_add(sampler, llama_sampler_init_dist(LLAMA_DEFAULT_SEED));
-    
 
     fprintf(stderr, "Initialization complete\n");
 }
@@ -71,7 +70,6 @@ Interface::~Interface() {
 
 std::string Interface::sampleTokens(int& n_past, bool& should_stop) {
     std::string result;
-    
 
     // Sample the next token
     llama_token new_token_id = llama_sampler_sample(sampler, ctx, -1);
@@ -106,20 +104,11 @@ std::string Interface::sampleTokens(int& n_past, bool& should_stop) {
 }
 
 std::string Interface::generate(const std::string& prompt) {
-    // Add DeepSeek-specific formatting
-    const std::string formatted_prompt = 
-        "You are a helpful AI assistant.\n\n"
-        "User: " + prompt + "\n"
-        "Assistant: ";
-
-    // Tokenize the formatted prompt
-    int n_prompt_tokens = -llama_tokenize(vocab, formatted_prompt.c_str(), 
-                                        formatted_prompt.length(), NULL, 0, true, false);
+    // Tokenize the prompt
+    int n_prompt_tokens = -llama_tokenize(vocab, prompt.c_str(), prompt.length(), NULL, 0, true, false);
     std::vector<llama_token> tokens(n_prompt_tokens);
 
-    // CORRECTED LINE: Use formatted_prompt instead of prompt
-    if (llama_tokenize(vocab, formatted_prompt.c_str(), formatted_prompt.length(), 
-                      tokens.data(), tokens.size(), true, false) < 0) {
+    if (llama_tokenize(vocab, prompt.c_str(), prompt.length(), tokens.data(), tokens.size(), true, false) < 0) {
         throw std::runtime_error("Tokenization failed");
     }
 
@@ -138,34 +127,8 @@ std::string Interface::generate(const std::string& prompt) {
     bool should_stop = false;
 
     for (int i = 0; i < max_tokens && !should_stop; i++) {
-        std::string token_str = sampleTokens(n_past, should_stop);
-        result += token_str;
-        
-        // Add stopping condition check HERE
-        if (result.find("\nUser:") != std::string::npos) {
-            should_stop = true;
-            // Backtrack to before the unwanted pattern
-            size_t pos = result.find("\nUser:");
-            if (pos != std::string::npos) {
-                result = result.substr(0, pos);
-            }
-            break;
-        }
+        result += sampleTokens(n_past, should_stop);
     }
 
-    return clean_response(result);
-}
-
-std::string Interface::clean_response(const std::string& response) {
-    size_t end_pos = response.find("</s>");
-    if(end_pos != std::string::npos) {
-        return response.substr(0, end_pos);
-    }
-    
-    end_pos = response.find("\nUser:");
-    if(end_pos != std::string::npos) {
-        return response.substr(0, end_pos);
-    }
-    
-    return response;
+    return result;
 }
