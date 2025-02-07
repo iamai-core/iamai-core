@@ -28,11 +28,10 @@ private:
     int max_tokens = 32;    // Default max tokens to generate
     int n_threads = 4;      // Default number of threads
     int n_batch = 8;        // Default batch size
-    int n_ctx = 4096;        // Context size
+    int n_ctx = 512;        // Context size
 
     // Helper method for token sampling
     std::string sampleTokens(int& n_past, bool& should_stop);
-    std::string clean_response(const std::string& response);
 };
 
 #endif // INTERFACE_H

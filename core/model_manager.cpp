@@ -40,9 +40,9 @@ bool ModelManager::switchModel(const std::string& model_name) {
 
         auto new_model = std::make_unique<Interface>(model_path.string());
         // Configure the model parameters
-        new_model->setMaxTokens(512);
-        new_model->setThreads(4);
-        new_model->setBatchSize(512);
+        new_model->setMaxTokens(128);
+        new_model->setThreads(1);
+        new_model->setBatchSize(1);
 
         current_model = std::move(new_model);
         std::cout << "Successfully switched to model: " << model_name << std::endl;
