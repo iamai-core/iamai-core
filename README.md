@@ -104,13 +104,3 @@ Customizing the Build
   - -DCMAKE_BUILD_TYPE=Release or Debug to switch build types.
   - -G "Visual Studio 17 2022" (or your specific generator) for Windows builds using MSVC.
 
-Contributing
-------------
-1. Fork and clone this repository.
-2. Create a new branch from main.
-3. Make your changes and test thoroughly.
-4. Submit a Pull Request.
-
-License
--------
-MIT
