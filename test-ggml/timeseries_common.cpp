@@ -75,31 +75,56 @@ TimeseriesModel::~TimeseriesModel() {
 TimeseriesModel* timeseries_model_init_random(const std::string& backend, const int nbatch_logical, const int nbatch_physical) {
     auto* model = new TimeseriesModel(backend, nbatch_logical, nbatch_physical);
     
-    // Initialize with random weights
+    // Initialize context
+    {
+        const size_t size_meta = 1024*ggml_tensor_overhead();
+        struct ggml_init_params params = {
+            /*.mem_size   =*/ size_meta,
+            /*.mem_buffer =*/ nullptr,
+            /*.no_alloc   =*/ true,
+        };
+        model->ctx_static = ggml_init(params);
+        if (!model->ctx_static) {
+            fprintf(stderr, "Failed to initialize static context\n");
+            delete model;
+            return nullptr;
+        }
+    }
+
+    // Initialize random number generator
     std::random_device rd{};
     std::mt19937 gen{rd()};
     std::normal_distribution<float> dist{0.0f, 0.1f};
     
     // Create tensors
-    model->input = ggml_new_tensor_2d(model->ctx_static, GGML_TYPE_F32, 
+    model->input = ggml_new_tensor_2d(model->ctx_static, GGML_TYPE_F32,
         TS_SEQUENCE_LENGTH * TS_FEATURES, model->nbatch_physical);
     
     model->input_weight = ggml_new_tensor_2d(model->ctx_static, GGML_TYPE_F32,
         TS_SEQUENCE_LENGTH * TS_FEATURES, TS_HIDDEN_SIZE);
-    model->input_bias = ggml_new_tensor_1d(model->ctx_static, GGML_TYPE_F32, 
+    model->input_bias = ggml_new_tensor_1d(model->ctx_static, GGML_TYPE_F32,
         TS_HIDDEN_SIZE);
-        
+    
     model->hidden_weight = ggml_new_tensor_2d(model->ctx_static, GGML_TYPE_F32,
         TS_HIDDEN_SIZE, TS_HIDDEN_SIZE);
     model->hidden_bias = ggml_new_tensor_1d(model->ctx_static, GGML_TYPE_F32,
         TS_HIDDEN_SIZE);
-        
+    
     model->output_weight = ggml_new_tensor_2d(model->ctx_static, GGML_TYPE_F32,
         TS_HIDDEN_SIZE, TS_HORIZON);
     model->output_bias = ggml_new_tensor_1d(model->ctx_static, GGML_TYPE_F32,
         TS_HORIZON);
 
-    // Set names for tensors
+    // Allocate backend buffer
+    model->buf_static = ggml_backend_alloc_ctx_tensors(model->ctx_static, model->backends[0]);
+    if (model->buf_static == nullptr) {
+        fprintf(stderr, "Failed to allocate backend buffer\n");
+        ggml_free(model->ctx_static);
+        delete model;
+        return nullptr;
+    }
+
+    // Set tensor names
     ggml_set_name(model->input, "input");
     ggml_set_name(model->input_weight, "input_weight");
     ggml_set_name(model->input_bias, "input_bias");
@@ -116,15 +141,32 @@ TimeseriesModel* timeseries_model_init_random(const std::string& backend, const 
     };
 
     for (ggml_tensor * t : init_tensors) {
-        std::vector<float> weights(ggml_nelements(t));
-        for (float & w : weights) {
-            w = dist(gen);
+        if (t == nullptr) {
+            fprintf(stderr, "Error: Null tensor encountered\n");
+            continue;
         }
-        ggml_backend_tensor_set(t, weights.data(), 0, ggml_nbytes(t));
+    
+        size_t num_elements = ggml_nelements(t);
+        size_t num_bytes = ggml_nbytes(t);
+        
+        fprintf(stderr, "Initializing tensor: elements=%zu, bytes=%zu\n",
+            num_elements, num_bytes);
+    
+        try {
+            std::vector<float> weights(num_elements);
+            for (float & w : weights) {
+                w = dist(gen);
+            }
+            
+            // Just call the function without checking return value
+            ggml_backend_tensor_set(t, weights.data(), 0, num_bytes);
+            
+            fprintf(stderr, "Successfully initialized tensor %s\n", ggml_get_name(t));
+        } catch (const std::exception& e) {
+            fprintf(stderr, "Exception during tensor initialization: %s\n", e.what());
+        }
     }
 
-    model->buf_static = ggml_backend_alloc_ctx_tensors(model->ctx_static, model->backends[0]);
-    
     return model;
 }
 

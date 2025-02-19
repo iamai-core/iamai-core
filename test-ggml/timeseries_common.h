@@ -15,8 +15,8 @@
 #define TS_HIDDEN_SIZE   64   // Size of hidden layer
 
 // Batch sizes for training
-#define TS_BATCH_LOGICAL  128
-#define TS_BATCH_PHYSICAL 64
+#define TS_BATCH_LOGICAL  100
+#define TS_BATCH_PHYSICAL 50
 
 // Define loss types if not defined by GGML
 #ifndef GGML_OPT_LOSS_TYPE_MSE
