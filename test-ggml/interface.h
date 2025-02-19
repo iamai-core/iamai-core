@@ -1,36 +1,27 @@
-#ifndef INTERFACE_H
-#define INTERFACE_H
+#pragma once
 
+#include <ggml.h>
+#include "m4_dataset.h"
+#include "timeseries_common.h"
 #include <string>
-#include <vector>
-#include <stdexcept>
-#include "llama.h"
 
-class Interface {
+class M4Interface {
 public:
-    Interface(const std::string& modelPath);
-    ~Interface();
+    M4Interface();
+    ~M4Interface();
 
-    // Configure generation parameters
-    void setMaxTokens(int n) { max_tokens = n; }
-    void setThreads(int n) { n_threads = n; }
-    void setBatchSize(int n) { n_batch = n; }
+    // Initialize the M4 dataset
+    bool init(const std::string& info_file, const std::string& data_file, const std::string& frequency);
 
-    // Main inference method
-    std::string generate(const std::string& prompt);
+    // Train a model
+    bool train(const std::string& model_path, const std::string& backend = "CPU");
+
+    // Evaluate a model
+    bool evaluate(const std::string& model_path, const std::string& test_data_file, const std::string& backend = "CPU");
 
 private:
-    llama_context* ctx;
-    llama_model* model;
-    llama_sampler* sampler;
-
-    int max_tokens = 32;    // Default max tokens to generate
-    int n_threads = 4;      // Default number of threads
-    int n_batch = 8;        // Default batch size
-    int n_ctx = 512;        // Context size
-
-    // Helper method for token sampling
-    std::string sampleTokens(int& n_past, bool& should_stop);
+    M4Dataset m4_data;
+    TimeseriesModel* model;
+    std::string current_frequency;
+    bool is_initialized;
 };
-
-#endif // INTERFACE_H
