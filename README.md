@@ -1,5 +1,8 @@
-iamai-core
-----------
+# Iamai-core
+<img width="600" alt="iamai_logo_2" src="https://github.com/user-attachments/assets/019496ef-5a16-4619-86b2-c5b1dbd653b2" />
+
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![Server](https://github.com/ggerganov/llama.cpp/actions/workflows/server.yml/badge.svg)](https://github.com/ggerganov/llama.cpp/actions/workflows/server.yml)
 
 iamai-core is the core "brain" library for all iamai projects. It provides the core functionality and interfaces for building, evaluating, and running LLM (Large Language Model) and speech-related tasks.
 
