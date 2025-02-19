@@ -1,5 +1,6 @@
 #include "interface.h"
 #include <cstdio>
+#include "m4_config.h"
 
 M4Interface::M4Interface() : model(nullptr), is_initialized(false) {}
 
@@ -81,13 +82,20 @@ bool M4Interface::evaluate(const std::string& model_path, const std::string& tes
         fprintf(stderr, "Please initialize the interface first with init()\n");
         return false;
     }
-
-    // Load test data
     M4Dataset test_data;
-    if (!test_data.load_info(test_data_file)) {
+    // Load test data
+    // 1) Load the M4 metadata from M4-info.csv
+    if (!test_data.load_info(m4::INFO_FILE)) {
+        fprintf(stderr, "Failed to load M4 info file: %s\n", m4::INFO_FILE.c_str());
+        return false;
+    }
+
+    // 2) Now load the numeric time-series from Monthly-test.csv
+    if (!test_data.load_data(test_data_file)) {
         fprintf(stderr, "Failed to load test data file: %s\n", test_data_file.c_str());
         return false;
     }
+
 
     // Create dataset for testing
     const size_t num_test_samples = 1000;
