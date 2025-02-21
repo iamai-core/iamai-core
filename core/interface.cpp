@@ -2,6 +2,33 @@
 #include "ggml-cuda.h"
 #include "ggml-backend.h"
 #include <iostream>
+#define EXPORT _declspec(dllexport)
+
+extern "C" {
+    // C-style factory functions
+    EXPORT Interface* create_interface(const char* model_path) {
+        try {
+            return new Interface(model_path);
+        } catch (...) {
+            return nullptr;
+        }
+    }
+
+    EXPORT void free_interface(Interface* ptr) {
+        delete ptr;
+    }
+
+    // Wrapper for generate function
+    EXPORT const char* interface_generate(Interface* ptr, const char* prompt) {
+        try {
+            static std::string result;  // Keep buffer alive for ctypes
+            result = ptr->generate(prompt);
+            return result.c_str();
+        } catch (...) {
+            return nullptr;
+        }
+    }
+}
 
 Interface::Interface(const std::string& modelPath) {
     // Load all available backends
