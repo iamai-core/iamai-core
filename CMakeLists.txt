@@ -7,6 +7,10 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+<<<<<<< HEAD
+# Then add other subdirectories
+=======
+>>>>>>> 81af075f5642b7f5b9e518e216106c174cf9670c
 add_subdirectory(core)
 #add_subdirectory(test-whisper)
 #add_subdirectory(test-ggml)
