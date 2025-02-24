@@ -7,7 +7,12 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# Then add other subdirectories
+<<<<<<< HEAD
 add_subdirectory(core)
+=======
+#add_subdirectory(core)
+>>>>>>> parent of 81af075 (Merge branch 'prod' into campbell)
 #add_subdirectory(test-whisper)
-#add_subdirectory(test-ggml)
+add_subdirectory(test-ggml)
 #add_subdirectory(test-llmc)

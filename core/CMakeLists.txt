@@ -24,9 +24,9 @@ find_library(SHELL32_LIBRARY Shell32)
 find_library(OLE32_LIBRARY Ole32)
 
 # Main executable
-add_executable(iamai-core 
-    main.cpp 
-    interface.cpp 
+add_executable(iamai-core
+    main.cpp
+    interface.cpp
     folder_manager.cpp
     whisper_interface.cpp
     whisper_interface.h
@@ -48,11 +48,12 @@ target_link_libraries(iamai-core PRIVATE
 )
 
 # Main dll/so/dylib
-add_library(iamai-core-lib SHARED 
-    iamai-core-lib.cpp 
+add_library(iamai-core-lib SHARED
+    iamai-core-lib.cpp
     interface.cpp
     folder_manager.cpp
 )
+
 set_target_properties(iamai-core-lib PROPERTIES
     OUTPUT_NAME "iamai-core"
     PREFIX ""
@@ -62,7 +63,7 @@ target_include_directories(iamai-core-lib PRIVATE
     ${CMAKE_SOURCE_DIR}/llama.cpp
 )
 
-target_link_libraries(iamai-core-lib PRIVATE 
+target_link_libraries(iamai-core-lib PRIVATE
     llama
     ${SHELL32_LIBRARY}
     ${OLE32_LIBRARY}
