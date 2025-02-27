@@ -89,6 +89,12 @@
         "valarray": "cpp",
         "xhash": "cpp",
         "xtree": "cpp",
-        "xstddef": "cpp"
+        "xstddef": "cpp",
+        "complex": "cpp",
+        "coroutine": "cpp",
+        "shared_mutex": "cpp",
+        "stack": "cpp",
+        "typeindex": "cpp",
+        "variant": "cpp"
     }
 }

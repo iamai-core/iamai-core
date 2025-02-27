@@ -26,6 +26,7 @@ Requirements
 4. CUDA (Version 12 recommended) if you want GPU acceleration
    - You should have the environment variable CUDA_PATH set to your CUDA installation on Windows.
    - On Windows, the build scripts will attempt to copy CUDA DLLs (cudart64_12.dll, cublas64_12.dll, cublasLt64_12.dll) to the output directory automatically.
+5. Add Whisper base model to documents/iamai/models
 
 Cloning
 -------
