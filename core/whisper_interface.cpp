@@ -39,14 +39,10 @@ void WhisperInterface::validateContext() const {
 
 std::string WhisperInterface::transcribe(const std::string& audio_path) {
     validateContext();
-
-    // Load audio file
     std::vector<float> pcmf32;
     if (!loadAudioFile(audio_path, pcmf32)) {
         throw std::runtime_error("Failed to load audio file");
     }
-
-    // Run whisper
     whisper_full_params params = whisper_full_default_params(WHISPER_SAMPLING_GREEDY);
     params.print_progress = true;
     params.print_special = false;
@@ -59,8 +55,6 @@ std::string WhisperInterface::transcribe(const std::string& audio_path) {
     if (whisper_full(ctx, params, pcmf32.data(), pcmf32.size()) != 0) {
         throw std::runtime_error("Failed to run whisper");
     }
-
-    // Get the results
     std::string result;
     const int n_segments = whisper_full_n_segments(ctx);
     for (int i = 0; i < n_segments; ++i) {
@@ -79,16 +73,12 @@ bool WhisperInterface::loadAudioFile(const std::string& audio_path, std::vector<
         std::cerr << "Failed to open audio file" << std::endl;
         return false;
     }
-
-    // Read RIFF header
     char riff_header[12];
     file.read(riff_header, 12);
     if (!file || memcmp(riff_header, "RIFF", 4) != 0 || memcmp(riff_header+8, "WAVE", 4) != 0) {
         std::cerr << "Invalid WAV file (RIFF header)" << std::endl;
         return false;
     }
-
-    // Find fmt and data chunks
     uint32_t chunk_size;
     char chunk_header[8];
     bool fmt_found = false, data_found = false;
@@ -99,7 +89,6 @@ bool WhisperInterface::loadAudioFile(const std::string& audio_path, std::vector<
         memcpy(&chunk_size, chunk_header + 4, 4);
 
         if (memcmp(chunk_header, "fmt ", 4) == 0) {
-            // Read fmt chunk
             char fmt_data[16];
             file.read(fmt_data, 16);
             memcpy(&audio_format, fmt_data, 2);
@@ -109,7 +98,7 @@ bool WhisperInterface::loadAudioFile(const std::string& audio_path, std::vector<
             memcpy(&block_align, fmt_data + 12, 2);
             memcpy(&bits_per_sample, fmt_data + 14, 2);
 
-            if (audio_format != 1) {  // Only support PCM
+            if (audio_format != 1) {
                 std::cerr << "Non-PCM format not supported" << std::endl;
                 return false;
             }
@@ -120,7 +109,6 @@ bool WhisperInterface::loadAudioFile(const std::string& audio_path, std::vector<
             break;
         }
         else {
-            // Skip unknown chunks
             file.ignore(chunk_size);
         }
     }
@@ -129,22 +117,16 @@ bool WhisperInterface::loadAudioFile(const std::string& audio_path, std::vector<
         std::cerr << "Invalid WAV file (missing fmt/data chunks)" << std::endl;
         return false;
     }
-
-    // Verify audio format
     if (bits_per_sample != 16) {
         std::cerr << "Only 16-bit PCM supported" << std::endl;
         return false;
     }
-
-    // Read PCM data
     std::vector<int16_t> pcm16(chunk_size / 2);
     file.read(reinterpret_cast<char*>(pcm16.data()), chunk_size);
     if (!file) {
         std::cerr << "Failed to read PCM data" << std::endl;
         return false;
     }
-
-    // Convert to float32
     pcmf32.resize(pcm16.size());
     for (size_t i = 0; i < pcm16.size(); i++) {
         pcmf32[i] = static_cast<float>(pcm16[i]) / 32768.0f;
