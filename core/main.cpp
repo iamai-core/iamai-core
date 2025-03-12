@@ -3,21 +3,16 @@
 #include <chrono>
 #include <string>
 #include <limits>
+#include <filesystem>
 #include "interface.h"
-#include "folder_manager.h"
 
 int main(int argc, char** argv) {
     try {
-        // Create folder structure first
-        auto& folderManager = iamai::FolderManager::getInstance();
-        if (!folderManager.createFolderStructure()) {
-            throw std::runtime_error("Failed to create necessary folders");
-        }
-
         std::cout << "Starting model initialization...\n" << std::endl;
         
-        // Get model path from the models folder
-        std::string model_path = (folderManager.getModelsPath() / "Llama-3.2-1B-Instruct-Q4_K_M.gguf").string();
+        // Get current executable directory and build model path
+        std::filesystem::path exe_dir = std::filesystem::current_path();
+        std::string model_path = (exe_dir / "tinyllama-1.1b-chat-v1.0.Q4_K_M.gguf").string();
         
         // Initialize interface with model path
         Interface myInterface(model_path);
@@ -25,7 +20,7 @@ int main(int argc, char** argv) {
         // Configure generation parameters
         myInterface.setMaxTokens(256);    // Generate up to 256 tokens
         myInterface.setThreads(1);        // Reduced CPU threads since we're using GPU
-        myInterface.setBatchSize(1);    // Increased batch size for GPU efficiency
+        myInterface.setBatchSize(1);      // Increased batch size for GPU efficiency
         
         std::cout << "\nModel initialized. Ready for input.\n" << std::endl;
         
