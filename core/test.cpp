@@ -16,7 +16,7 @@ int main(int argc, char** argv) {
         // Configure generation parameters
         myInterface.setMaxTokens(256);    // Generate up to 256 tokens
         myInterface.setThreads(8);        // Reduced CPU threads since we're using GPU
-        myInterface.setBatchSize(512);    // Increased batch size for GPU efficiency
+        myInterface.setBatchSize(1);    // Increased batch size for GPU efficiency
 
         std::cout << "\nModel initialized. Ready for input.\n" << std::endl;
 
