@@ -1,10 +1,15 @@
 #include "folder_manager.h"
-#pragma comment(lib, "shell32.lib")
-#pragma comment(lib, "ole32.lib")
 #include <stdexcept>
-#include <windows.h>
-#include <shlobj.h>
 #include <iostream>
+#include <cstdlib>
+
+#ifdef _WIN32
+    #include <windows.h>
+    #include <shlobj.h>
+#else
+    #include <pwd.h>
+    #include <unistd.h>
+#endif
 
 namespace iamai {
 
@@ -15,44 +20,75 @@ FolderManager& FolderManager::getInstance() {
     return instance;
 }
 
-std::string FolderManager::getWindowsFolder(int folderId) const {
-    if (folderId == CSIDL_LOCAL_APPDATA) {
-        wchar_t path[MAX_PATH];
-        if (SUCCEEDED(SHGetFolderPathW(NULL, folderId, NULL, SHGFP_TYPE_CURRENT, path))) {
-            std::wstring wPath(path);
-            return std::string(wPath.begin(), wPath.end());
-        }
+#ifdef _WIN32
+// Windows implementation
+std::string FolderManager::getSystemFolder(int folderId) const {
+    CHAR path[MAX_PATH];
+    int csidlFlag;
+    
+    switch (folderId) {
+        case CSIDL_LOCAL_APPDATA:
+            csidlFlag = CSIDL_LOCAL_APPDATA;
+            break;
+        case CSIDL_PERSONAL:
+            csidlFlag = CSIDL_PERSONAL;
+            break;
+        default:
+            return "";
     }
-    else if (folderId == CSIDL_PERSONAL) {
-        char* userProfile = nullptr;
-        size_t len;
-        _dupenv_s(&userProfile, &len, "USERPROFILE");
-        if (userProfile != nullptr) {
-            std::string documentsPath = std::string(userProfile) + "\\Documents";
-            free(userProfile);
-            return documentsPath;
-        }
+    
+    if (SUCCEEDED(SHGetFolderPathA(NULL, csidlFlag, NULL, 0, path))) {
+        return std::string(path);
     }
     
     return "";
 }
+#else
+// macOS/Unix implementation
+std::string FolderManager::getSystemFolder(int folderId) const {
+    // Get user's home directory
+    const char* homeDir = getenv("HOME");
+    
+    if (!homeDir) {
+        // Fallback if HOME is not set
+        struct passwd* pwd = getpwuid(getuid());
+        if (pwd) {
+            homeDir = pwd->pw_dir;
+        } else {
+            return "";
+        }
+    }
+    
+    if (folderId == CSIDL_LOCAL_APPDATA) {
+        // On macOS, application data is stored in ~/Library/Application Support
+        return std::string(homeDir) + "/Library/Application Support";
+    }
+    else if (folderId == CSIDL_PERSONAL) {
+        // Documents folder
+        return std::string(homeDir) + "/Documents";
+    }
+    
+    return "";
+}
+#endif
 
 bool FolderManager::createFolderStructure() {
     try {
         std::cout << "Starting folder structure creation..." << std::endl;
+        
         // Get system paths
-        std::string localAppData = getWindowsFolder(CSIDL_LOCAL_APPDATA);
-        std::string documentsPath = getWindowsFolder(CSIDL_PERSONAL);
+        std::string appSupportPath = getSystemFolder(CSIDL_LOCAL_APPDATA);
+        std::string documentsPath = getSystemFolder(CSIDL_PERSONAL);
         
-        std::cout << "Got AppData path: " << localAppData << std::endl;
-        std::cout << "Got Documents path: " << documentsPath << std::endl;
+        std::cout << "Got application data path: " << appSupportPath << std::endl;
+        std::cout << "Got documents path: " << documentsPath << std::endl;
         
-        if (localAppData.empty() || documentsPath.empty()) {
+        if (appSupportPath.empty() || documentsPath.empty()) {
             throw std::runtime_error("Failed to get system folders paths");
         }
 
         // Set up paths
-        m_appDataPath = fs::path(localAppData) / "iamai";
+        m_appDataPath = fs::path(appSupportPath) / "iamai";
         m_binPath = m_appDataPath / "bin";
         m_documentsPath = fs::path(documentsPath) / "iamai";
         m_modelsPath = m_documentsPath / "models";
@@ -60,7 +96,7 @@ bool FolderManager::createFolderStructure() {
         // Create all directories
         std::cout << "Creating folder structure..." << std::endl;
         
-        // Create AppData folders
+        // Create Application Support folders
         if (!fs::exists(m_appDataPath)) {
             fs::create_directories(m_appDataPath);
             std::cout << "Created: " << m_appDataPath << std::endl;

@@ -1,7 +1,12 @@
 #include "interface.h"
 #include "ggml-backend.h"
 #include <iostream>
+
+#ifdef _WIN32
 #define EXPORT _declspec(dllexport)
+#else
+#define EXPORT __attribute__((visibility("default")))
+#endif
 
 extern "C" {
     // C-style factory functions

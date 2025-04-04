@@ -5,36 +5,34 @@
 
 namespace iamai {
 
+// Cross-platform folder IDs
+#define CSIDL_LOCAL_APPDATA 0  // AppData or ~/Library/Application Support
+#define CSIDL_PERSONAL 1       // Documents folder
+
 class FolderManager {
 public:
-    // Get singleton instance
     static FolderManager& getInstance();
-
-    // Delete copy constructor and assignment operator
-    FolderManager(const FolderManager&) = delete;
-    FolderManager& operator=(const FolderManager&) = delete;
-
-    // Initialize folder structure
+    
     bool createFolderStructure();
-
-    // Get paths
+    
     std::filesystem::path getAppDataPath() const;
     std::filesystem::path getBinPath() const;
     std::filesystem::path getDocumentsPath() const;
     std::filesystem::path getModelsPath() const;
-
+    
 private:
-    // Private constructor for singleton
     FolderManager() = default;
+    ~FolderManager() = default;
+    FolderManager(const FolderManager&) = delete;
+    FolderManager& operator=(const FolderManager&) = delete;
     
-    // Helper functions
-    std::string getWindowsFolder(int folderId) const;
+    // Platform-specific folder getters
+    std::string getSystemFolder(int folderId) const;
     
-    // Cached paths
-    mutable std::filesystem::path m_appDataPath;
-    mutable std::filesystem::path m_binPath;
-    mutable std::filesystem::path m_documentsPath;
-    mutable std::filesystem::path m_modelsPath;
+    std::filesystem::path m_appDataPath;
+    std::filesystem::path m_binPath;
+    std::filesystem::path m_documentsPath;
+    std::filesystem::path m_modelsPath;
 };
 
 } // namespace iamai
