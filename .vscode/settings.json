@@ -88,13 +88,7 @@
         "unordered_set": "cpp",
         "valarray": "cpp",
         "xhash": "cpp",
-<<<<<<< Updated upstream
-        "xtree": "cpp"
-=======
         "xtree": "cpp",
-        "xstddef": "cpp",
-        "complex": "cpp",
-        "variant": "cpp"
->>>>>>> Stashed changes
+        "xstddef": "cpp"
     }
 }
