@@ -39,6 +39,40 @@ set_target_properties(iamai-core-lib PROPERTIES
 )
 target_link_libraries(iamai-core-lib PRIVATE llama)
 
+<<<<<<< Updated upstream
 # Main test executable
 add_executable(test test.cpp interface.cpp win.rc)
 target_link_libraries(test PRIVATE llama)
+=======
+target_include_directories(iamai-core-lib PRIVATE
+    ${CMAKE_SOURCE_DIR}/llama.cpp
+)
+
+target_link_libraries(iamai-core-lib PRIVATE
+    llama
+    ${SHELL32_LIBRARY}
+    ${OLE32_LIBRARY}
+)
+
+# whisper-interface DLL
+add_library(whisper-interface-lib SHARED
+    whisper-interface-lib.cpp
+    whisper_interface.cpp
+    folder_manager.cpp
+)
+
+set_target_properties(whisper-interface-lib PROPERTIES
+    OUTPUT_NAME "whisper-interface"
+    PREFIX ""
+)
+
+target_include_directories(whisper-interface-lib PRIVATE
+    ${CMAKE_SOURCE_DIR}/whisper.cpp
+)
+
+target_link_libraries(whisper-interface-lib PRIVATE
+    whisper
+    ${SHELL32_LIBRARY}
+    ${OLE32_LIBRARY}
+)
+>>>>>>> Stashed changes
