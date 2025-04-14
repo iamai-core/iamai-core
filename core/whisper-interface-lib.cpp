@@ -39,12 +39,6 @@ EXPORT void Free(Context* ctx) {
 
 }
 
-EXPORT void SetThreads(Context* ctx, int n_threads) {
-    
-    if (ctx) ctx->interface->setThreads(n_threads);
-    
-}
-
 EXPORT void setLanguage( Context* ctx, const char* language) {
 
     if (ctx) ctx->interface->setLanguage( language );

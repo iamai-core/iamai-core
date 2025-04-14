@@ -25,10 +25,10 @@ private:
     const llama_vocab* vocab = nullptr;
     llama_sampler* sampler = nullptr;
 
-    int max_tokens = 32;    // Default max tokens to generate
-    int n_threads = 4;      // Default number of threads
-    int n_batch = 8;        // Default batch size
-    int n_ctx = 4096;        // Context size
+    int max_tokens = 512;   // Default max tokens to generate
+    int n_threads = 1;      // Default number of threads
+    int n_batch = 1;        // Default batch size
+    int n_ctx = 8192;       // Context size
 
     // Helper method for token sampling
     std::string sampleTokens(int& n_past, bool& should_stop);

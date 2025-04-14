@@ -54,12 +54,6 @@ EXPORT void SetThreads(Context* ctx, int n_threads) {
     }
 }
 
-EXPORT void SetBatchSize(Context* ctx, int batch_size) {
-    if (ctx) {
-        ctx->interface->setBatchSize(batch_size);
-    }
-}
-
 // Cleanup
 EXPORT void Free(Context* ctx) {
     if (ctx) {

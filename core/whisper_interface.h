@@ -19,11 +19,13 @@ public:
     std::string transcribe( float* data, int samples );
 
 private:
+
     whisper_context* ctx;
-    int n_threads = 4;
+    int n_threads = 1;
     std::string language = "en";
     bool translate = false;
     
     void validateContext() const;
     bool loadAudioFile(const std::string& audio_path, std::vector<float>& pcmf32);
+    
 };
