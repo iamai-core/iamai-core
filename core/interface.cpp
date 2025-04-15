@@ -29,7 +29,68 @@ extern "C" {
     }
 }
 
+Interface::Interface(const std::string& modelPath, int size, int tokens, int batch, int threads) {
+
+    n_ctx = size;
+    n_batch = batch;
+    max_tokens = tokens;
+    n_threads = threads;
+
+    ggml_backend_load_all();
+
+    // Initialize model parameters without CUDA
+    auto model_params = llama_model_default_params();
+
+    // No GPU layers - run on CPU only
+    model_params.n_gpu_layers = 0;  // Set to 0 to disable GPU usage
+
+    fprintf(stderr, "Loading model on CPU only (n_gpu_layers = %d)...\n",
+            model_params.n_gpu_layers);
+
+    // Load the model
+    model = llama_model_load_from_file(modelPath.c_str(), model_params);
+    if (model == NULL) {
+        fprintf(stderr, "error: failed to load model from '%s'\n", modelPath.c_str());
+        throw std::runtime_error("Failed to load model");
+    }
+
+    // Get vocab handle
+    vocab = llama_model_get_vocab(model);
+
+    // Initialize context parameters for CPU optimization
+    auto ctx_params = llama_context_default_params();
+    ctx_params.n_ctx = n_ctx;
+    ctx_params.n_batch = n_batch;  // Use the default batch size
+    ctx_params.n_threads = n_threads;  // Use more threads for CPU
+    ctx_params.n_threads_batch = n_threads;  // Match batch processing threads
+
+    fprintf(stderr, "Creating context with batch size %d and %d threads...\n", 
+            ctx_params.n_batch, ctx_params.n_threads);
+
+    // Create context
+    ctx = llama_init_from_model(model, ctx_params);
+    if (ctx == NULL) {
+        fprintf(stderr, "error: failed to create context\n");
+        llama_model_free(model);
+        throw std::runtime_error("Failed to create context");
+    }
+
+    // Initialize sampler with CPU-optimized parameters
+    auto sparams = llama_sampler_chain_default_params();
+    sampler = llama_sampler_chain_init(sparams);
+
+    // Add sampling settings
+    llama_sampler_chain_add(sampler, llama_sampler_init_top_k(50));
+    llama_sampler_chain_add(sampler, llama_sampler_init_top_p(0.9f, 1));
+    llama_sampler_chain_add(sampler, llama_sampler_init_temp(0.5f));
+    llama_sampler_chain_add(sampler, llama_sampler_init_dist(LLAMA_DEFAULT_SEED));
+    
+    fprintf(stderr, "Initialization complete\n");
+
+}
+
 Interface::Interface(const std::string& modelPath) {
+    
     // Load all available backends
     ggml_backend_load_all();
 
@@ -82,6 +143,7 @@ Interface::Interface(const std::string& modelPath) {
     
     fprintf(stderr, "Initialization complete\n");
 }
+
 
 Interface::~Interface() {
     if (sampler != NULL) {

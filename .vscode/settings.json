@@ -91,6 +91,8 @@
         "xtree": "cpp",
         "xstddef": "cpp",
         "complex": "cpp",
-        "variant": "cpp"
+        "variant": "cpp",
+        "coroutine": "cpp",
+        "resumable": "cpp"
     }
 }

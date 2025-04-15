@@ -8,7 +8,9 @@
 
 class Interface {
 public:
+
     Interface(const std::string& modelPath);
+    Interface(const std::string& modelPath, int size, int tokens, int batch, int threads);
     ~Interface();
 
     // Configure generation parameters
@@ -20,6 +22,7 @@ public:
     std::string generate(const std::string& prompt);
 
 private:
+
     llama_context* ctx = nullptr;
     llama_model* model = nullptr;
     const llama_vocab* vocab = nullptr;
@@ -27,12 +30,13 @@ private:
 
     int max_tokens = 512;   // Default max tokens to generate
     int n_threads = 1;      // Default number of threads
-    int n_batch = 1;        // Default batch size
+    int n_batch = 8192;        // Default batch size
     int n_ctx = 8192;       // Context size
 
     // Helper method for token sampling
     std::string sampleTokens(int& n_past, bool& should_stop);
     std::string clean_response(const std::string& response);
+
 };
 
 #endif // INTERFACE_H

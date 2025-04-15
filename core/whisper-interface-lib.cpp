@@ -14,12 +14,12 @@ struct Context {
 extern "C" {
 
 
-EXPORT Context* Init(const char* model_path) {
+EXPORT Context* Init(const char* model_path, int threads) {
     
     try {
 
         Context* ctx = new Context;
-        ctx->interface = new WhisperInterface(model_path);
+        ctx->interface = new WhisperInterface(model_path, threads);
         return ctx;
 
     } catch (...) {
@@ -48,6 +48,12 @@ EXPORT void setLanguage( Context* ctx, const char* language) {
 EXPORT void setTranslate(Context* ctx, bool translate) {
 
     if (ctx) ctx->interface->setTranslate( translate );
+
+}
+
+EXPORT void setThreads(Context* ctx, int threads) {
+
+    if (ctx) ctx->interface->setThreads( threads );
 
 }
 

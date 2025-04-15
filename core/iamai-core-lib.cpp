@@ -14,15 +14,33 @@ struct Context {
 
 extern "C" {
 
-// Initialize the model
+
 EXPORT Context* Init(const char* model_path) {
+
     try {
+        
         Context* ctx = new Context();
         ctx->interface = new Interface(model_path);
         return ctx;
+        
     } catch (...) {
         return nullptr;
     }
+
+}
+
+EXPORT Context* FullInit(const char* model_path, int size, int tokens, int batch, int threads) {
+    
+    try {
+
+        Context* ctx = new Context();
+        ctx->interface = new Interface(model_path, size, tokens, batch, threads);
+        return ctx;
+
+    } catch (...) {
+        return nullptr;
+    }
+
 }
 
 // Generate text from a prompt
@@ -45,12 +63,6 @@ EXPORT bool Generate(Context* ctx, const char* prompt, char* output, int output_
 EXPORT void SetMaxTokens(Context* ctx, int max_tokens) {
     if (ctx) {
         ctx->interface->setMaxTokens(max_tokens);
-    }
-}
-
-EXPORT void SetThreads(Context* ctx, int n_threads) {
-    if (ctx) {
-        ctx->interface->setThreads(n_threads);
     }
 }
 

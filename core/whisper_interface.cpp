@@ -5,11 +5,12 @@
 #include <cstring>
 #include <iostream>
 
-WhisperInterface::WhisperInterface(const std::string& model_path) {
+WhisperInterface::WhisperInterface(const std::string& model_path, int threads) {
+
+    n_threads = threads;
     ctx = whisper_init_from_file(model_path.c_str());
-    if (!ctx) {
-        throw std::runtime_error("Failed to initialize whisper context");
-    }
+    if (!ctx) throw std::runtime_error("Failed to initialize whisper context");
+
 }
 
 WhisperInterface::~WhisperInterface() {

@@ -6,7 +6,7 @@
 
 class WhisperInterface {
 public:
-    WhisperInterface(const std::string& model_path);
+    WhisperInterface(const std::string& model_path, int threads = 1);
     ~WhisperInterface();
 
     // Configure parameters
