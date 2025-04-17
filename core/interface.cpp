@@ -1,6 +1,7 @@
 #include "interface.h"
 #include "ggml-backend.h"
 #include <iostream>
+#include <thread>
 #define EXPORT _declspec(dllexport)
 
 extern "C" {
@@ -91,6 +92,14 @@ Interface::Interface(const std::string& modelPath, int size, int tokens, int bat
 
 Interface::Interface(const std::string& modelPath) {
     
+    unsigned int maxThreads = std::thread::hardware_concurrency();
+    if (maxThreads <= 4) n_threads = 1;
+    else n_threads = maxThreads / 4;
+
+    if (n_threads >= 16) n_batch = 64;
+    else if (n_threads >= 8) n_batch = 32;
+    else n_batch = 16;
+
     // Load all available backends
     ggml_backend_load_all();
 
@@ -114,22 +123,22 @@ Interface::Interface(const std::string& modelPath) {
     vocab = llama_model_get_vocab(model);
 
     // Initialize context parameters for CPU optimization
-    auto ctx_params = llama_context_default_params();
-    ctx_params.n_ctx = n_ctx;
-    ctx_params.n_batch = n_batch;  // Use the default batch size
-    ctx_params.n_threads = n_threads;  // Use more threads for CPU
-    ctx_params.n_threads_batch = n_threads;  // Match batch processing threads
+        auto ctx_params = llama_context_default_params();
+        ctx_params.n_ctx = n_ctx;
+        ctx_params.n_batch = n_batch;  // Use the default batch size
+        ctx_params.n_threads = n_threads;  // Use more threads for CPU
+        ctx_params.n_threads_batch = n_threads;  // Match batch processing threads
 
-    fprintf(stderr, "Creating context with batch size %d and %d threads...\n", 
-            ctx_params.n_batch, ctx_params.n_threads);
+        fprintf(stderr, "Creating context with batch size %d and %d threads...\n", 
+                ctx_params.n_batch, ctx_params.n_threads);
 
-    // Create context
-    ctx = llama_init_from_model(model, ctx_params);
-    if (ctx == NULL) {
-        fprintf(stderr, "error: failed to create context\n");
-        llama_model_free(model);
-        throw std::runtime_error("Failed to create context");
-    }
+        // Create context
+        ctx = llama_init_from_model(model, ctx_params);
+        if (ctx == NULL) {
+            fprintf(stderr, "error: failed to create context\n");
+            llama_model_free(model);
+            throw std::runtime_error("Failed to create context");
+        }
 
     // Initialize sampler with CPU-optimized parameters
     auto sparams = llama_sampler_chain_default_params();
@@ -193,6 +202,51 @@ std::string Interface::sampleTokens(int& n_past, bool& should_stop) {
 }
 
 std::string Interface::generate(const std::string& prompt) {
+    
+    const std::string formatted_prompt = prompt;
+
+    int n_prompt_tokens = -llama_tokenize(vocab, formatted_prompt.c_str(), 
+                                          formatted_prompt.length(), nullptr, 0, true, false);
+    std::vector<llama_token> tokens(n_prompt_tokens);
+
+    if (llama_tokenize(vocab, formatted_prompt.c_str(), formatted_prompt.length(), 
+                       tokens.data(), tokens.size(), true, false) < 0) {
+        throw std::runtime_error("Tokenization failed");
+    }
+
+    int n_past = 0;
+
+    // BATCHED prompt evaluation using n_batch
+    for (int i = 0; i < tokens.size(); i += n_batch) {
+        int len = std::min(n_batch, static_cast<int>(tokens.size()) - i);
+        llama_batch batch = llama_batch_get_one(tokens.data() + i, len);
+        if (llama_decode(ctx, batch)) {
+            throw std::runtime_error("Failed to eval prompt batch");
+        }
+        n_past += len;
+    }
+
+    std::string result;
+    bool should_stop = false;
+
+    for (int i = 0; i < max_tokens && !should_stop; i++) {
+        std::string token_str = sampleTokens(n_past, should_stop);
+        result += token_str;
+
+        size_t pos = result.find("\nUser:");
+        if (pos != std::string::npos) {
+            result = result.substr(0, pos);
+            break;
+        }
+    }
+
+    return clean_response(result);
+
+}
+
+
+/*
+std::string Interface::generate(const std::string& prompt) {
     // Add DeepSeek-specific formatting
     const std::string formatted_prompt = 
         "You are a helpful AI assistant.\n\n"
@@ -241,6 +295,7 @@ std::string Interface::generate(const std::string& prompt) {
 
     return clean_response(result);
 }
+*/
 
 std::string Interface::clean_response(const std::string& response) {
     size_t end_pos = response.find("</s>");
