@@ -32,6 +32,12 @@ void WhisperInterface::setTranslate(bool translate) {
     this->translate = translate;
 }
 
+void WhisperInterface::setTokens( int tokens ) {
+    if (tokens <= 0) throw std::runtime_error("Tokens must be greater than 0!");
+    if (tokens > 4480 ) throw std::runtime_error("Tokens can not exceed 4480!");
+    this->max_tokens = tokens;
+}
+
 void WhisperInterface::validateContext() const {
     if (!ctx) {
         throw std::runtime_error("Whisper context not initialized");
@@ -39,28 +45,30 @@ void WhisperInterface::validateContext() const {
 }
 
 std::string WhisperInterface::transcribe(const std::string& audio_path) {
+
     validateContext();
     std::vector<float> pcmf32;
     if (!loadAudioFile(audio_path, pcmf32)) {
         throw std::runtime_error("Failed to load audio file");
     }
+
     whisper_full_params params = whisper_full_default_params(WHISPER_SAMPLING_GREEDY);
-    params.print_progress = true;
+    params.print_progress = false;
     params.print_special = false;
     params.print_realtime = false;
     params.print_timestamps = false;
     params.translate = translate;
     params.language = language.c_str();
     params.n_threads = n_threads;
-
+    
     if (whisper_full(ctx, params, pcmf32.data(), pcmf32.size()) != 0) {
         throw std::runtime_error("Failed to run whisper");
     }
+    
     std::string result;
     const int n_segments = whisper_full_n_segments(ctx);
     for (int i = 0; i < n_segments; ++i) {
-        const char* text = whisper_full_get_segment_text(ctx, i);
-        result += text;
+        result += whisper_full_get_segment_text(ctx, i);
         result += " ";
     }
 
@@ -71,26 +79,30 @@ std::string WhisperInterface::transcribe(const std::string& audio_path) {
 std::string WhisperInterface::transcribe( float* data, int samples ) {
 
     whisper_full_params params = whisper_full_default_params(WHISPER_SAMPLING_GREEDY);
-    params.print_progress = true;
+    params.print_progress = false;
     params.print_special = false;
     params.print_realtime = false;
     params.print_timestamps = false;
     params.translate = translate;
     params.language = language.c_str();
     params.n_threads = n_threads;
+    params.max_tokens = max_tokens;
 
     if (whisper_full(ctx, params, data, samples) != 0) {
+
         throw std::runtime_error("Failed to run whisper");
+
     }
+
     std::string result;
     const int n_segments = whisper_full_n_segments(ctx);
     for (int i = 0; i < n_segments; ++i) {
+
         const char* text = whisper_full_get_segment_text(ctx, i);
         result += text;
         result += " ";
-    }
 
-    std::cout << "Test print" << result << std::endl; 
+    }
 
     return result.c_str();
     

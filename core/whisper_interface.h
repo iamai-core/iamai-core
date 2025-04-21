@@ -13,6 +13,7 @@ public:
     void setThreads(int n_threads);
     void setLanguage(const std::string& language);
     void setTranslate(bool translate);
+    void setTokens(int tokens);
 
     // Main functionality
     std::string transcribe(const std::string& audio_path);
@@ -24,6 +25,7 @@ private:
     int n_threads = 1;
     std::string language = "en";
     bool translate = false;
+    int max_tokens = 512;
     
     void validateContext() const;
     bool loadAudioFile(const std::string& audio_path, std::vector<float>& pcmf32);
