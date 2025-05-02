@@ -202,56 +202,8 @@ std::string Interface::sampleTokens(int& n_past, bool& should_stop) {
 }
 
 std::string Interface::generate(const std::string& prompt) {
-    
-    const std::string formatted_prompt = prompt;
-
-    int n_prompt_tokens = -llama_tokenize(vocab, formatted_prompt.c_str(), 
-                                          formatted_prompt.length(), nullptr, 0, true, false);
-    std::vector<llama_token> tokens(n_prompt_tokens);
-
-    if (llama_tokenize(vocab, formatted_prompt.c_str(), formatted_prompt.length(), 
-                       tokens.data(), tokens.size(), true, false) < 0) {
-        throw std::runtime_error("Tokenization failed");
-    }
-
-    int n_past = 0;
-
-    // BATCHED prompt evaluation using n_batch
-    for (int i = 0; i < tokens.size(); i += n_batch) {
-        int len = std::min(n_batch, static_cast<int>(tokens.size()) - i);
-        llama_batch batch = llama_batch_get_one(tokens.data() + i, len);
-        if (llama_decode(ctx, batch)) {
-            throw std::runtime_error("Failed to eval prompt batch");
-        }
-        n_past += len;
-    }
-
-    std::string result;
-    bool should_stop = false;
-
-    for (int i = 0; i < max_tokens && !should_stop; i++) {
-        std::string token_str = sampleTokens(n_past, should_stop);
-        result += token_str;
-
-        size_t pos = result.find("\nUser:");
-        if (pos != std::string::npos) {
-            result = result.substr(0, pos);
-            break;
-        }
-    }
-
-    return clean_response(result);
-
-}
-
-
-/*
-std::string Interface::generate(const std::string& prompt) {
     // Add DeepSeek-specific formatting
-    const std::string formatted_prompt = 
-        "You are a helpful AI assistant.\n\n"
-        "User: " + prompt + "\n"
-        "Assistant: ";
+    const std::string formatted_prompt = prompt;
 
     // Tokenize the formatted prompt
     int n_prompt_tokens = -llama_tokenize(vocab, formatted_prompt.c_str(), 
@@ -295,7 +247,6 @@ std::string Interface::generate(const std::string& prompt) {
 
     return clean_response(result);
 }
-*/
 
 std::string Interface::clean_response(const std::string& response) {
     size_t end_pos = response.find("</s>");
