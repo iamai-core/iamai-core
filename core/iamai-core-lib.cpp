@@ -29,17 +29,42 @@ EXPORT Context* Init(const char* model_path) {
 
 }
 
-EXPORT Context* FullInit(const char* model_path, int size, int tokens, int batch, int threads) {
+EXPORT Context* FullInit(const char* model_path, int max_tokens, int batch, int size, int threads, int top_k, float top_p, float temperature, uint32_t seed ) {
     
     try {
 
-        Context* ctx = new Context();
-        ctx->interface = new Interface(model_path, size, tokens, batch, threads);
+        Context* ctx = new Context( );
+        
+        Interface::Config config;
+        config.max_tokens = max_tokens;
+        config.n_batch = batch;
+        config.n_ctx = size;
+        config.n_threads = threads;
+
+        config.seed = seed;
+        config.temperature = temperature;
+        config.top_k = top_k;
+        config.top_p = top_p;
+
+        ctx->interface = new Interface(model_path, config);
         return ctx;
 
     } catch (...) {
+
         return nullptr;
+
     }
+
+}
+
+EXPORT void SetPromptFormat( Context* ctx, const char* format) {
+
+    if (ctx) ctx->interface->setPromptFormat( format );
+
+}
+EXPORT void ClearPromptFormat( Context* ctx) {
+
+    if (ctx) ctx->interface->clearPromptFormat();
 
 }
 

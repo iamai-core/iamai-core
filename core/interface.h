@@ -7,35 +7,53 @@
 #include "llama.h"
 
 class Interface {
+
+public:
+
+struct Config {
+
+    int n_ctx = 2048;
+    int n_batch = 64;
+    int max_tokens = 256;
+    int n_threads = 8;
+    
+    int top_k = 50;
+    float top_p = 0.9f;
+    float temperature = 0.5f;
+    uint32_t seed = LLAMA_DEFAULT_SEED;
+
+};
+Config config;
+
 public:
 
     Interface(const std::string& modelPath);
-    Interface(const std::string& modelPath, int size, int tokens, int batch, int threads);
+    Interface(const std::string& modelPath, Config config);
     ~Interface();
 
-    // Configure generation parameters
-    void setMaxTokens(int n) { max_tokens = n; }
-    void setThreads(int n) { n_threads = n; }
-    void setBatchSize(int n) { n_batch = n; }
+    void setPromptFormat(const std::string& promptFormat);
+    void clearPromptFormat();
+
+    void setMaxTokens(int tokens) { config.max_tokens = tokens; }
 
     // Main inference method
     std::string generate(const std::string& prompt);
 
 private:
 
+    void initializeModel( const std::string& modelPath );
+    void formatNewPrompt( const std::string& input, std::string& output );
+
+    bool formatPrompt = false;
+    std::string promptFormat = "";
+
     llama_context* ctx = nullptr;
     llama_model* model = nullptr;
     const llama_vocab* vocab = nullptr;
     llama_sampler* sampler = nullptr;
 
-    int max_tokens = 256;   // Default max tokens to generate
-    int n_threads = 1;      // Default number of threads
-    int n_batch = 16;        // Default batch size
-    int n_ctx = 2048;       // Context size
-
     // Helper method for token sampling
     std::string sampleTokens(int& n_past, bool& should_stop);
-    std::string clean_response(const std::string& response);
 
 };
 
