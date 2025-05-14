@@ -1,33 +1,26 @@
 ## C/C++
-
 # Prerequisites
 *.d
-
 # Compiled Object files
 *.slo
 *.lo
 *.o
 *.obj
-
 # Precompiled Headers
 *.gch
 *.pch
-
 # Compiled Dynamic libraries
 *.so
 *.dylib
 *.dll
-
 # Fortran module files
 *.mod
 *.smod
-
 # Compiled Static libraries
 *.lai
 *.la
 *.a
 *.lib
-
 # Executables
 *.exe
 *.out
@@ -36,7 +29,6 @@
 
 
 ## CMake
-
 build/
 CMakeFiles/
 CMakeCache.txt
@@ -46,75 +38,63 @@ compile_commands.json
 
 
 ## Python
-
 # Python bytecode
 __pycache__/
 *.py[cod]
-
 # Virtual environments
 venv/
 env/
 .env
-
 # Distribution/packaging
 dist/
 build/
 *.egg-info/
-
 # Testing and coverage
 .pytest_cache/
 .coverage
 htmlcov/
 
-# IDE settings
-.vscode/
-.idea/
-
-# Local database files
-*.db
-*.sqlite3
-
-# Logs
-*.log
-
 
 
 ## C#
-
 # Build results
 [Dd]ebug/
 [Rr]elease/
 [Bb]in/
 [Oo]bj/
-
 # Visual Studio files
 .vs/
 *.suo
 *.user
 *.sln.docstates
-
-# Build and debug files
-*.pdb
-*.dll
-*.exe
-
-# Cache and temporary files
-[Tt]emp/
-*.tmp
-*.log
-
-# IDE-specific files
-.idea/
-*.userprefs
-
 # NuGet Packages
 *.nupkg
 packages/
 *.nuget.props
 *.nuget.targets
+# Build and debug files
+*.pdb
+*.dll
+*.exe
 
+
+
+
+## OS
+.DS_Store
+Desktop.ini
+*.db
+*.sqlite3
+
+
+## IDE
+.vscode/
+.idea/
+*.userprefs
+[Tt]emp/
+*.tmp
+*.log
 
 
 ## Project specific
-
 models/
