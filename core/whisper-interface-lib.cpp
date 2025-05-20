@@ -72,3 +72,5 @@ EXPORT const char* Transcribe( Context* ctx, float* data, int samples ) {
     }
 
 }
+
+}
