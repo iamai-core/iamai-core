@@ -12,10 +12,10 @@ public:
 
 struct Config {
 
-    int n_ctx = 2048;
-    int n_batch = 64;
+    int ctx = 2048;
+    int batch = 64;
     int max_tokens = 256;
-    int n_threads = 8;
+    int threads = 8;
     
     int top_k = 50;
     float top_p = 0.9f;

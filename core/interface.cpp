@@ -33,12 +33,12 @@ extern "C" {
 Interface::Interface(const std::string& modelPath) {
 
     unsigned int maxThreads = std::thread::hardware_concurrency();
-    if (maxThreads <= 4) config.n_threads = 1;
-    else config.n_threads = maxThreads / 4;
+    if (maxThreads <= 4) config.threads = 1;
+    else config.threads = maxThreads / 4;
 
-    if (config.n_threads >= 16) config.n_batch = 64;
-    else if (config.n_threads >= 8) config.n_batch = 32;
-    else config.n_batch = 16;
+    if (config.threads >= 16) config.batch = 64;
+    else if (config.threads >= 8) config.batch = 32;
+    else config.batch = 16;
 
     initializeModel(modelPath);
     
@@ -56,14 +56,11 @@ void Interface::initializeModel(const std::string& modelPath) {
     // Load all available backends
     ggml_backend_load_all();
 
-    // Initialize model parameters without CUDA
+    // Initialize model parameters
     auto model_params = llama_model_default_params();
 
     // No GPU layers - run on CPU only
     model_params.n_gpu_layers = 0;  // Set to 0 to disable GPU usage
-
-    fprintf(stderr, "Loading model on CPU only (n_gpu_layers = %d)...\n",
-            model_params.n_gpu_layers);
 
     // Load the model
     model = llama_model_load_from_file(modelPath.c_str(), model_params);
@@ -78,10 +75,10 @@ void Interface::initializeModel(const std::string& modelPath) {
 
     // Initialize context parameters for CPU optimization
         auto ctx_params = llama_context_default_params();
-        ctx_params.n_ctx = config.n_ctx;
-        ctx_params.n_batch = config.n_batch;  // Use the default batch size
-        ctx_params.n_threads = config.n_threads;  // Use more threads for CPU
-        ctx_params.n_threads_batch = config.n_threads;  // Match batch processing threads
+        ctx_params.n_ctx = config.ctx;
+        ctx_params.n_batch = config.batch;  // Use the default batch size
+        ctx_params.n_threads = config.threads;  // Use more threads for CPU
+        ctx_params.n_threads_batch = config.threads;  // Match batch processing threads
 
         // Create context
         ctx = llama_init_from_model(model, ctx_params);

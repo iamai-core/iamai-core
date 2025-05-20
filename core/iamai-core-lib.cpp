@@ -37,9 +37,9 @@ EXPORT Context* FullInit(const char* model_path, int max_tokens, int batch, int 
         
         Interface::Config config;
         config.max_tokens = max_tokens;
-        config.n_batch = batch;
-        config.n_ctx = size;
-        config.n_threads = threads;
+        config.batch = batch;
+        config.ctx = size;
+        config.threads = threads;
 
         config.seed = seed;
         config.temperature = temperature;

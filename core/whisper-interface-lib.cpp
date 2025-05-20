@@ -57,7 +57,7 @@ EXPORT void setThreads(Context* ctx, int threads) {
 
 }
 
-EXPORT const char* Transcrible( Context* ctx, float* data, int samples ) {
+EXPORT const char* Transcribe( Context* ctx, float* data, int samples ) {
 
     try {
         
@@ -70,7 +70,5 @@ EXPORT const char* Transcrible( Context* ctx, float* data, int samples ) {
         return nullptr;
 
     }
-
-}
 
 }
