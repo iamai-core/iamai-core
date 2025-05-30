@@ -33,6 +33,6 @@ add_subdirectory(${CMAKE_SOURCE_DIR}/llama.cpp ${CMAKE_BINARY_DIR}/llama.cpp)
 # )
 # target_link_libraries(iamai-core-lib PRIVATE llama)
 
-# Test executable
-add_executable(test test.cpp interface.cpp win.rc)
-target_link_libraries(test PRIVATE llama)
+# Test executables
+add_executable(test-interface test-interface.cpp interface.cpp win.rc)
+target_link_libraries(test-interface PRIVATE llama)
