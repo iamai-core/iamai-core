@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.15)
+cmake_minimum_required(VERSION 3.18)
 project(iamai-core C CXX)
 
 # Set C/C++ standards before anything else
@@ -9,6 +9,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 
 add_subdirectory(core)
-#add_subdirectory(test-whisper)
-#add_subdirectory(test-ggml)
-#add_subdirectory(test-llmc)
+# add_subdirectory(test-whisper)
+# add_subdirectory(test-ggml)
+# add_subdirectory(test-llmc)

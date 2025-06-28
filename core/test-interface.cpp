@@ -10,7 +10,7 @@ int main(int argc, char** argv) {
         std::cout << "Starting model initialization...\n" << std::endl;
 
         // Initialize interface with model path
-        const std::string model_path = "../../../models/Llama-3.2-1B-Instruct-Q4_K_M.gguf";
+        const std::string model_path = "models/Llama-3.2-1B-Instruct-Q4_K_M.gguf";
         Interface myInterface(model_path);
 
         // Configure generation parameters
