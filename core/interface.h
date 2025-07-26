@@ -4,17 +4,31 @@
 #include <string>
 #include <vector>
 #include <stdexcept>
+
 #include "llama.h"
 
 class Interface {
 public:
-    Interface(const std::string& modelPath);
-    ~Interface();
+    struct Config {
+        int ctx = 2048;
+        int batch = 64;
+        int max_tokens = 256;
+        int threads = 8;
 
-    // Configure generation parameters
-    void setMaxTokens(int n) { max_tokens = n; }
-    void setThreads(int n) { n_threads = n; }
-    void setBatchSize(int n) { n_batch = n; }
+        int top_k = 50;
+        float top_p = 0.9f;
+        float temperature = 0.5f;
+        uint32_t seed = LLAMA_DEFAULT_SEED;
+    };
+    Config config;
+
+    void setMaxTokens(int tokens) { config.max_tokens = tokens; }
+    void setPromptFormat(const std::string& promptFormat);
+    void clearPromptFormat();
+
+    Interface(const std::string& modelPath);
+    Interface(const std::string& modelPath, Config config);
+    ~Interface();
 
     // Main inference method
     std::string generate(const std::string& prompt);
@@ -25,10 +39,11 @@ private:
     const llama_vocab* vocab = nullptr;
     llama_sampler* sampler = nullptr;
 
-    int max_tokens = 32;    // Default max tokens to generate
-    int n_threads = 4;      // Default number of threads
-    int n_batch = 8;        // Default batch size
-    int n_ctx = 512;        // Context size
+    bool formatPrompt = false;
+    std::string promptFormat = "";
+
+    void initializeModel(const std::string& modelPath);
+    void formatNewPrompt(const std::string& input, std::string& output);
 
     // Helper method for token sampling
     std::string sampleTokens(int& n_past, bool& should_stop);

@@ -14,15 +14,58 @@ struct Context {
 
 extern "C" {
 
-// Initialize the model
+
 EXPORT Context* Init(const char* model_path) {
+
     try {
+        
         Context* ctx = new Context();
         ctx->interface = new Interface(model_path);
         return ctx;
+        
     } catch (...) {
         return nullptr;
     }
+
+}
+
+EXPORT Context* FullInit(const char* model_path, int max_tokens, int batch, int size, int threads, int top_k, float top_p, float temperature, uint32_t seed ) {
+    
+    try {
+
+        Context* ctx = new Context( );
+        
+        Interface::Config config;
+        config.max_tokens = max_tokens;
+        config.batch = batch;
+        config.ctx = size;
+        config.threads = threads;
+
+        config.seed = seed;
+        config.temperature = temperature;
+        config.top_k = top_k;
+        config.top_p = top_p;
+
+        ctx->interface = new Interface(model_path, config);
+        return ctx;
+
+    } catch (...) {
+
+        return nullptr;
+
+    }
+
+}
+
+EXPORT void SetPromptFormat( Context* ctx, const char* format) {
+
+    if (ctx) ctx->interface->setPromptFormat( format );
+
+}
+EXPORT void ClearPromptFormat( Context* ctx) {
+
+    if (ctx) ctx->interface->clearPromptFormat();
+
 }
 
 // Generate text from a prompt
@@ -45,18 +88,6 @@ EXPORT bool Generate(Context* ctx, const char* prompt, char* output, int output_
 EXPORT void SetMaxTokens(Context* ctx, int max_tokens) {
     if (ctx) {
         ctx->interface->setMaxTokens(max_tokens);
-    }
-}
-
-EXPORT void SetThreads(Context* ctx, int n_threads) {
-    if (ctx) {
-        ctx->interface->setThreads(n_threads);
-    }
-}
-
-EXPORT void SetBatchSize(Context* ctx, int batch_size) {
-    if (ctx) {
-        ctx->interface->setBatchSize(batch_size);
     }
 }
 

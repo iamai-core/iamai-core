@@ -20,20 +20,46 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 # option(GGML_METAL                           "ggml: use Metal"                                 ON)
 # option(GGML_METAL_USE_BF16                  "ggml: use bfloat if available"                   ON)
 
-add_subdirectory(${CMAKE_SOURCE_DIR}/llama.cpp ${CMAKE_BINARY_DIR}/llama.cpp)
+add_subdirectory(${CMAKE_SOURCE_DIR}/llama.cpp ${CMAKE_BINARY_DIR}/llama.cpp-build)
 
-# # Main executable
-# add_executable(iamai-core iamai-core.cpp interface.cpp win.rc)
-# target_link_libraries(iamai-core PRIVATE llama)
+# # Find required Windows libraries
+# find_library(SHELL32_LIBRARY Shell32)
+# find_library(OLE32_LIBRARY Ole32)
 
-# # Main dll/so/dylib
-# add_library(iamai-core-lib SHARED iamai-core-lib.cpp interface.cpp)
-# set_target_properties(iamai-core-lib PROPERTIES
-#     OUTPUT_NAME "iamai-core"
-#     PREFIX ""
+
+## iamai-core dll/so/dylib
+add_library(iamai-core-lib SHARED
+    interface-lib.cpp
+    interface.cpp
+    # folder-manager.cpp
+)
+set_target_properties(iamai-core-lib PROPERTIES
+    OUTPUT_NAME "iamai-core"
+    PREFIX ""
+)
+# target_include_directories(iamai-core-lib PRIVATE
+#     ${CMAKE_SOURCE_DIR}/llama.cpp
 # )
-# target_link_libraries(iamai-core-lib PRIVATE llama)
+target_link_libraries(iamai-core-lib PRIVATE
+    llama
+    # ${SHELL32_LIBRARY}
+    # ${OLE32_LIBRARY}
+)
 
-# Test executables
-add_executable(test-interface test-interface.cpp interface.cpp win.rc)
-target_link_libraries(test-interface PRIVATE llama)
+
+## test-interface executable
+add_executable(test-interface
+    test-interface.cpp
+    interface.cpp
+    # folder-manager.cpp
+    win.rc
+)
+# target_include_directories(test-interface PRIVATE
+#     ${CMAKE_SOURCE_DIR}/llama.cpp
+#     ${CMAKE_SOURCE_DIR}/whisper.cpp
+#     ${CMAKE_SOURCE_DIR}/core
+#     ${CMAKE_CURRENT_SOURCE_DIR}
+# )
+target_link_libraries(test-interface PRIVATE
+    llama
+)
