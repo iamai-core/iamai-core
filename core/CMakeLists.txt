@@ -22,10 +22,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 add_subdirectory(${CMAKE_SOURCE_DIR}/llama.cpp ${CMAKE_BINARY_DIR}/llama.cpp-build)
 
-# # Find required Windows libraries
-# find_library(SHELL32_LIBRARY Shell32)
-# find_library(OLE32_LIBRARY Ole32)
-
 
 ## iamai-core dll/so/dylib
 add_library(iamai-core-lib SHARED
@@ -37,35 +33,26 @@ set_target_properties(iamai-core-lib PROPERTIES
     OUTPUT_NAME "iamai-core"
     PREFIX ""
 )
-# target_include_directories(iamai-core-lib PRIVATE
-#     ${CMAKE_SOURCE_DIR}/llama.cpp
-# )
 target_link_libraries(iamai-core-lib PRIVATE
     llama
-    # ${SHELL32_LIBRARY}
-    # ${OLE32_LIBRARY}
 )
 
 
-## test executables
+## example/test iamai-core dll/so/dylib
+add_executable(test-library
+    test-library.cpp
+    win.rc
+)
+add_dependencies(test-library iamai-core-lib)
+
+
+## example/test using includes
 add_executable(test-include
     test-include.cpp
     interface.cpp
     # folder-manager.cpp
     win.rc
 )
-# target_include_directories(test-include PRIVATE
-#     ${CMAKE_SOURCE_DIR}/llama.cpp
-#     ${CMAKE_SOURCE_DIR}/whisper.cpp
-#     ${CMAKE_SOURCE_DIR}/core
-#     ${CMAKE_CURRENT_SOURCE_DIR}
-# )
 target_link_libraries(test-include PRIVATE
     llama
 )
-
-add_executable(test-library
-    test-library.cpp
-    win.rc
-)
-add_dependencies(test-library iamai-core-lib)
