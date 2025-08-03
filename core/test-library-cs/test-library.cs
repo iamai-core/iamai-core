@@ -1,7 +1,5 @@
-﻿using System;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 using System.Text;
-using System.IO;
 
 namespace iamai_core_lib
 {
@@ -76,7 +74,7 @@ namespace iamai_core_lib
         {
             // Get the current directory and navigate to the DLL location
             string exePath = Directory.GetCurrentDirectory();
-            string projectRoot = Path.GetFullPath(Path.Combine(exePath, "..", "..", "..", ".."));
+            string projectRoot = Path.GetFullPath(Path.Combine(exePath, "..", "..", "..", "..", ".."));
             string dllDirectory = Path.Combine(projectRoot, "build", "bin", "Debug");
             string dllPath = Path.Combine(dllDirectory, DLL_PATH);
             string modelPath = Path.Combine(projectRoot, "models", modelName);
