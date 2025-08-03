@@ -47,19 +47,19 @@ target_link_libraries(iamai-core-lib PRIVATE
 )
 
 
-## interface-test executable
-add_executable(interface-test
-    interface-test.cpp
+## test executables
+add_executable(test-include
+    test-include.cpp
     interface.cpp
     # folder-manager.cpp
     win.rc
 )
-# target_include_directories(interface-test PRIVATE
+# target_include_directories(test-include PRIVATE
 #     ${CMAKE_SOURCE_DIR}/llama.cpp
 #     ${CMAKE_SOURCE_DIR}/whisper.cpp
 #     ${CMAKE_SOURCE_DIR}/core
 #     ${CMAKE_CURRENT_SOURCE_DIR}
 # )
-target_link_libraries(interface-test PRIVATE
+target_link_libraries(test-include PRIVATE
     llama
 )

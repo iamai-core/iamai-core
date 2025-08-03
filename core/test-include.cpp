@@ -17,20 +17,6 @@ int main(int argc, char** argv) {
 
         std::string prompt = "What colors is a rainbow";
 
-        // // Get prompt from user
-        // std::cout << "Enter your prompt (press Enter twice when done):\n";
-        // std::string line;
-
-        // // Read lines until an empty line is entered
-        // while (std::getline(std::cin, line) && !line.empty()) {
-        //     prompt += line + "\n";
-        // }
-
-        // // Remove the last newline if it exists
-        // if (!prompt.empty() && prompt.back() == '\n') {
-        //     prompt.pop_back();
-        // }
-
         std::cout << "Generating response for prompt: " << prompt << std::endl;
 
         // Time the generation
