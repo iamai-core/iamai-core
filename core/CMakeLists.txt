@@ -63,3 +63,9 @@ add_executable(test-include
 target_link_libraries(test-include PRIVATE
     llama
 )
+
+add_executable(test-library
+    test-library.cpp
+    win.rc
+)
+add_dependencies(test-library iamai-core-lib)
