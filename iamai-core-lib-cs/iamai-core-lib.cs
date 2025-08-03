@@ -1,9 +1,22 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.IO;
 
 namespace iamai_core_lib
 {
+    public class AIConfig
+    {
+        public int MaxTokens { get; set; } = 256;
+        public int Batch { get; set; } = 64;
+        public int ContextSize { get; set; } = 2048;
+        public int Threads { get; set; } = 8;
+        public int TopK { get; set; } = 50;
+        public float TopP { get; set; } = 0.9f;
+        public float Temperature { get; set; } = 0.5f;
+        public uint Seed { get; set; } = 42;
+    }
+
     public class AI : IDisposable
     {
         private IntPtr ctx;
@@ -29,6 +42,12 @@ namespace iamai_core_lib
         private delegate IntPtr InitDelegate([MarshalAs(UnmanagedType.LPStr)] string modelPath);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate IntPtr FullInitDelegate(
+            [MarshalAs(UnmanagedType.LPStr)] string modelPath,
+            int maxTokens, int batch, int contextSize, int threads,
+            int topK, float topP, float temperature, uint seed);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         private delegate bool GenerateDelegate(IntPtr context, [MarshalAs(UnmanagedType.LPStr)] string prompt,
             [MarshalAs(UnmanagedType.LPStr)] StringBuilder output, int maxLength);
 
@@ -36,23 +55,24 @@ namespace iamai_core_lib
         private delegate void SetMaxTokensDelegate(IntPtr context, int maxTokens);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        private delegate void SetThreadsDelegate(IntPtr context, int nThreads);
+        private delegate void SetPromptFormatDelegate(IntPtr context, [MarshalAs(UnmanagedType.LPStr)] string format);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        private delegate void SetBatchSizeDelegate(IntPtr context, int batchSize);
+        private delegate void ClearPromptFormatDelegate(IntPtr context);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         private delegate void FreeDelegate(IntPtr context);
 
         // Function delegates
         private InitDelegate _init;
+        private FullInitDelegate _fullInit;
         private GenerateDelegate _generate;
         private SetMaxTokensDelegate _setMaxTokens;
-        private SetThreadsDelegate _setThreads;
-        private SetBatchSizeDelegate _setBatchSize;
+        private SetPromptFormatDelegate _setPromptFormat;
+        private ClearPromptFormatDelegate _clearPromptFormat;
         private FreeDelegate _free;
 
-        public AI(string modelName)
+        public AI(string modelName, AIConfig config = null)
         {
             // Get the current directory and navigate to the DLL location
             string exePath = Directory.GetCurrentDirectory();
@@ -79,14 +99,35 @@ namespace iamai_core_lib
 
             // Get function pointers
             _init = GetDelegate<InitDelegate>("Init");
+            _fullInit = GetDelegate<FullInitDelegate>("FullInit");
             _generate = GetDelegate<GenerateDelegate>("Generate");
             _setMaxTokens = GetDelegate<SetMaxTokensDelegate>("SetMaxTokens");
-            _setThreads = GetDelegate<SetThreadsDelegate>("SetThreads");
-            _setBatchSize = GetDelegate<SetBatchSizeDelegate>("SetBatchSize");
+            _setPromptFormat = GetDelegate<SetPromptFormatDelegate>("SetPromptFormat");
+            _clearPromptFormat = GetDelegate<ClearPromptFormatDelegate>("ClearPromptFormat");
             _free = GetDelegate<FreeDelegate>("Free");
 
             // Initialize the model
-            ctx = _init(modelPath);
+            if (config == null)
+            {
+                // Use simple initialization
+                ctx = _init(modelPath);
+            }
+            else
+            {
+                // Use full initialization with configuration
+                ctx = _fullInit(
+                    modelPath,
+                    config.MaxTokens,
+                    config.Batch,
+                    config.ContextSize,
+                    config.Threads,
+                    config.TopK,
+                    config.TopP,
+                    config.Temperature,
+                    config.Seed
+                );
+            }
+
             if (ctx == IntPtr.Zero)
             {
                 throw new InvalidOperationException("Failed to initialize model");
@@ -123,14 +164,14 @@ namespace iamai_core_lib
             _setMaxTokens(ctx, maxTokens);
         }
 
-        public void SetThreads(int nThreads)
+        public void SetPromptFormat(string format)
         {
-            _setThreads(ctx, nThreads);
+            _setPromptFormat(ctx, format);
         }
 
-        public void SetBatchSize(int batchSize)
+        public void ClearPromptFormat()
         {
-            _setBatchSize(ctx, batchSize);
+            _clearPromptFormat(ctx);
         }
 
         protected virtual void Dispose(bool disposing)
@@ -169,10 +210,33 @@ namespace iamai_core_lib
         {
             try
             {
+                // Example with simple initialization
                 using (var ai = new AI(@"Llama-3.2-1B-Instruct-Q4_K_M.gguf"))
                 {
                     ai.SetMaxTokens(256);
                     string response = ai.Generate("Tell me a story about a robot.");
+                    Console.WriteLine("Simple init response:");
+                    Console.WriteLine(response);
+                }
+
+                // Example with full configuration
+                var config = new AIConfig
+                {
+                    MaxTokens = 128,
+                    Batch = 32,
+                    ContextSize = 1024,
+                    Threads = 4,
+                    TopK = 40,
+                    TopP = 0.8f,
+                    Temperature = 0.7f,
+                    Seed = 1337
+                };
+
+                using (var ai = new AI(@"Llama-3.2-1B-Instruct-Q4_K_M.gguf", config))
+                {
+                    ai.SetPromptFormat("Human: {prompt}\nAssistant: ");
+                    string response = ai.Generate("What is the meaning of life?");
+                    Console.WriteLine("\nConfigured response:");
                     Console.WriteLine(response);
                 }
             }
