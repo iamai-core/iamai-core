@@ -14,3 +14,11 @@
 	path = whisper.cpp
 	url = https://github.com/ggerganov/whisper.cpp.git
 	branch = master
+[submodule "chat-demo/SDL"]
+	path = chat-demo/SDL
+	url = https://github.com/libsdl-org/SDL.git
+	branch = main
+[submodule "chat-demo/imgui"]
+	path = chat-demo/imgui
+	url = https://github.com/ocornut/imgui.git
+	branch = master

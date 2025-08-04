@@ -8,7 +8,9 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Then choose which subdirectory to build
-add_subdirectory(core)
+add_subdirectory(core core-build)
+# add_subdirectory(chat-demo chat-demo-build)
+
 # add_subdirectory(test-whisper)
 # add_subdirectory(test-ggml)
 # add_subdirectory(test-llmc)
