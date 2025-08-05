@@ -36,7 +36,6 @@ private:
     bool showSettings = false;
     bool showAbout = false;
     bool autoScroll = true;
-    float typingSpeed = 50.0f; // chars per second for typewriter effect
 
     // Performance metrics
     std::chrono::high_resolution_clock::time_point lastGenStart;
@@ -346,9 +345,6 @@ private:
             ImGui::Text("UI Settings");
             ImGui::Separator();
 
-            ImGui::Checkbox("Auto-scroll", &autoScroll);
-            ImGui::SliderFloat("Typing Speed", &typingSpeed, 10.0f, 200.0f, "%.0f chars/sec");
-
             ImGui::Spacing();
 
             if (ImGui::Button("Clear Chat History", ImVec2(-1, 0))) {
@@ -361,8 +357,6 @@ private:
                 maxTokens = 256;
                 temperature = 0.7f;
                 usePromptFormat = true;
-                autoScroll = true;
-                typingSpeed = 50.0f;
                 showSettings = false;
             }
 
