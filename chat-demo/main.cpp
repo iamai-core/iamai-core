@@ -130,7 +130,18 @@ public:
     }
 
     void RenderChat() {
-        ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoCollapse;
+        // Calculate available space for the chat area
+        ImVec2 windowSize = ImGui::GetIO().DisplaySize;
+        ImVec2 windowPos = ImVec2(0, 0);
+
+        // Set window to fill entire viewport
+        ImGui::SetNextWindowPos(windowPos);
+        ImGui::SetNextWindowSize(windowSize);
+
+        ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration |
+                                       ImGuiWindowFlags_NoResize |
+                                       ImGuiWindowFlags_NoMove |
+                                       ImGuiWindowFlags_NoBringToFrontOnFocus;
 
         if (ImGui::Begin("iamai-core Chat Demo", nullptr, window_flags)) {
 
@@ -139,8 +150,12 @@ public:
 
             ImGui::Separator();
 
-            // Main chat area
-            if (ImGui::BeginChild("ChatHistory", ImVec2(0, -60), ImGuiChildFlags_Border, ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
+            // Main chat area - calculate height dynamically
+            float headerHeight = ImGui::GetCursorPosY();
+            float inputHeight = 80.0f; // Space for input area
+            float chatHeight = windowSize.y - headerHeight - inputHeight - 20.0f; // 20px padding
+
+            if (ImGui::BeginChild("ChatHistory", ImVec2(0, chatHeight), ImGuiChildFlags_Border, ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
                 RenderMessages();
             }
             ImGui::EndChild();
@@ -152,43 +167,57 @@ public:
         }
         ImGui::End();
 
-        // Settings window
-        if (showSettings) {
-            RenderSettings();
-        }
-
-        // About window
-        if (showAbout) {
-            RenderAbout();
-        }
+        // Settings dropdown (no longer as separate window)
+        // About dropdown (no longer as separate window)
     }
 
 private:
     void RenderHeader() {
-        // Status indicator
+        // Control buttons first (left side)
+        if (ImGui::Button("Settings")) {
+            showSettings = !showSettings;
+        }
+
+        // Store button position for dropdown positioning
+        ImVec2 settingsButtonPos = ImGui::GetItemRectMin();
+        settingsButtonPos.y += ImGui::GetItemRectSize().y;
+
+        ImGui::SameLine();
+        if (ImGui::Button("About")) {
+            showAbout = !showAbout;
+        }
+
+        // Store button position for dropdown positioning
+        ImVec2 aboutButtonPos = ImGui::GetItemRectMin();
+        aboutButtonPos.y += ImGui::GetItemRectSize().y;
+
+        ImGui::SameLine();
+        ImGui::Separator();
+        ImGui::SameLine();
+
+        // Status indicator (right after buttons)
         if (isGenerating) {
             ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "● Generating...");
         } else {
             ImGui::TextColored(ImVec4(0.5f, 0.5f, 0.5f, 1.0f), "● Ready");
         }
 
-        ImGui::SameLine();
-
-        // Performance metrics
+        // Performance metrics (same line)
         if (lastGenTime > 0) {
+            ImGui::SameLine();
             float tokensPerSec = tokensGenerated / lastGenTime;
             ImGui::Text("| Last: %.2fs (%.1f t/s)", lastGenTime, tokensPerSec);
         }
 
-        ImGui::SameLine(ImGui::GetWindowWidth() - 120);
-
-        // Control buttons
-        if (ImGui::Button("Settings")) {
-            showSettings = !showSettings;
+        // Render dropdown windows
+        if (showSettings) {
+            ImGui::SetNextWindowPos(settingsButtonPos);
+            RenderSettingsDropdown();
         }
-        ImGui::SameLine();
-        if (ImGui::Button("About")) {
-            showAbout = !showAbout;
+
+        if (showAbout) {
+            ImGui::SetNextWindowPos(aboutButtonPos);
+            RenderAboutDropdown();
         }
     }
 
@@ -282,8 +311,13 @@ private:
         }
     }
 
-    void RenderSettings() {
-        if (ImGui::Begin("Settings", &showSettings)) {
+    void RenderSettingsDropdown() {
+        ImGuiWindowFlags popup_flags = ImGuiWindowFlags_NoMove |
+                                      ImGuiWindowFlags_NoResize |
+                                      ImGuiWindowFlags_NoTitleBar |
+                                      ImGuiWindowFlags_AlwaysAutoResize;
+
+        if (ImGui::Begin("##SettingsDropdown", nullptr, popup_flags)) {
             ImGui::Text("AI Generation Settings");
             ImGui::Separator();
 
@@ -317,31 +351,55 @@ private:
 
             ImGui::Spacing();
 
-            if (ImGui::Button("Clear Chat History")) {
+            if (ImGui::Button("Clear Chat History", ImVec2(-1, 0))) {
                 messages.clear();
                 messages.emplace_back("Chat history cleared. How can I help you?", false);
+                showSettings = false;
             }
 
-            ImGui::SameLine();
-
-            if (ImGui::Button("Reset to Defaults")) {
+            if (ImGui::Button("Reset to Defaults", ImVec2(-1, 0))) {
                 maxTokens = 256;
                 temperature = 0.7f;
                 usePromptFormat = true;
                 autoScroll = true;
                 typingSpeed = 50.0f;
+                showSettings = false;
+            }
+
+            if (ImGui::Button("Close", ImVec2(-1, 0))) {
+                showSettings = false;
+            }
+
+            // Check if we should close (click outside, but not on the settings button)
+            if (ImGui::IsMouseClicked(0) && !ImGui::IsWindowHovered() && !ImGui::IsAnyItemHovered()) {
+                // Get mouse position and check if it's not over the settings button
+                ImVec2 mousePos = ImGui::GetMousePos();
+                ImVec2 buttonMin = ImVec2(0, 0); // Settings button position would need to be stored
+                ImVec2 buttonMax = ImVec2(80, 25); // Approximate button size
+
+                if (mousePos.x < buttonMin.x || mousePos.x > buttonMax.x ||
+                    mousePos.y < buttonMin.y || mousePos.y > buttonMax.y) {
+                    showSettings = false;
+                }
             }
         }
         ImGui::End();
     }
 
-    void RenderAbout() {
-        if (ImGui::Begin("About iamai-core", &showAbout)) {
+    void RenderAboutDropdown() {
+        ImGuiWindowFlags popup_flags = ImGuiWindowFlags_NoMove |
+                                      ImGuiWindowFlags_NoResize |
+                                      ImGuiWindowFlags_NoTitleBar |
+                                      ImGuiWindowFlags_AlwaysAutoResize;
+
+        if (ImGui::Begin("##AboutDropdown", nullptr, popup_flags)) {
             ImGui::TextWrapped("iamai-core - Personal AI, Simply Yours");
             ImGui::Separator();
 
+            ImGui::PushTextWrapPos(350.0f); // Limit text width for better formatting
             ImGui::TextWrapped("iamai-core is an open-source personal AI that runs entirely on your device. "
                              "No cloud services, no data sharing - just download and start.");
+            ImGui::PopTextWrapPos();
 
             ImGui::Spacing();
             ImGui::Text("Key Features:");
@@ -361,7 +419,7 @@ private:
             ImGui::Spacing();
             ImGui::Separator();
 
-            if (ImGui::Button("Visit Website")) {
+            if (ImGui::Button("Visit Website", ImVec2(-1, 0))) {
                 // Open website in default browser
                 #ifdef _WIN32
                 system("start https://iamai-core.org");
@@ -370,11 +428,10 @@ private:
                 #else
                 system("xdg-open https://iamai-core.org");
                 #endif
+                showAbout = false;
             }
 
-            ImGui::SameLine();
-
-            if (ImGui::Button("GitHub Repository")) {
+            if (ImGui::Button("GitHub Repository", ImVec2(-1, 0))) {
                 #ifdef _WIN32
                 system("start https://github.com/iamai-core");
                 #elif defined(__APPLE__)
@@ -382,10 +439,21 @@ private:
                 #else
                 system("xdg-open https://github.com/iamai-core");
                 #endif
+                showAbout = false;
+            }
+
+            if (ImGui::Button("Close", ImVec2(-1, 0))) {
+                showAbout = false;
             }
 
             ImGui::Spacing();
             ImGui::TextColored(ImVec4(0.6f, 0.6f, 0.6f, 1.0f), "Version 1.0.0 - MIT License");
+
+            // Check if we should close (click outside, but not on the about button)
+            if (ImGui::IsMouseClicked(0) && !ImGui::IsWindowHovered() && !ImGui::IsAnyItemHovered()) {
+                // Simple approach - just close if clicked outside the window
+                showAbout = false;
+            }
         }
         ImGui::End();
     }
@@ -399,24 +467,16 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    // Create window
-    SDL_Window* window = SDL_CreateWindow(
+    // Create window and renderer
+    SDL_Window* window = nullptr;
+    SDL_Renderer* renderer = nullptr;
+
+    if (!SDL_CreateWindowAndRenderer(
         "iamai-core - Personal AI Chat Demo",
         1400, 900,
-        SDL_WINDOW_RESIZABLE
-    );
-
-    if (!window) {
-        std::cerr << "SDL_CreateWindow failed: " << SDL_GetError() << std::endl;
-        SDL_Quit();
-        return 1;
-    }
-
-    // Create renderer
-    SDL_Renderer* renderer = SDL_CreateRenderer(window, nullptr);
-    if (!renderer) {
-        std::cerr << "SDL_CreateRenderer failed: " << SDL_GetError() << std::endl;
-        SDL_DestroyWindow(window);
+        SDL_WINDOW_RESIZABLE,
+        &window, &renderer)) {
+        std::cerr << "SDL_CreateWindowAndRenderer failed: " << SDL_GetError() << std::endl;
         SDL_Quit();
         return 1;
     }
@@ -428,6 +488,35 @@ int main(int argc, char* argv[]) {
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+
+    // Get DPI scaling for 4K monitor support using SDL3
+    float dpiScale = 1.0f;
+    SDL_DisplayID displayID = SDL_GetDisplayForWindow(window);
+    if (displayID != 0) {
+        float contentScale = SDL_GetDisplayContentScale(displayID);
+        if (contentScale > 0.0f) {
+            dpiScale = contentScale;
+            // Clamp scaling to reasonable values
+            if (dpiScale < 1.0f) dpiScale = 1.0f;
+            if (dpiScale > 3.0f) dpiScale = 3.0f;
+        }
+    }
+
+    // Apply DPI scaling to fonts and UI
+    if (dpiScale > 1.0f) {
+        // Scale UI elements
+        ImGui::GetStyle().ScaleAllSizes(dpiScale);
+
+        // Load default font with proper scaling
+        ImFontConfig fontConfig;
+        fontConfig.OversampleH = 2;
+        fontConfig.OversampleV = 2;
+        fontConfig.SizePixels = 16.0f * dpiScale;
+        io.Fonts->AddFontDefault(&fontConfig);
+
+        // Alternative: load custom font if available
+        // io.Fonts->AddFontFromFileTTF("fonts/Roboto-Medium.ttf", 16.0f * dpiScale, &fontConfig);
+    }
 
     // Setup style - Modern dark theme
     ImGui::StyleColorsDark();
