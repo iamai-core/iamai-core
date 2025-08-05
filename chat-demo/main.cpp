@@ -242,6 +242,16 @@ private:
                     ImGui::TextColored(ImVec4(0.6f, 0.8f, 1.0f, 1.0f), "You");
                 } else {
                     ImGui::TextColored(ImVec4(0.8f, 1.0f, 0.6f, 1.0f), "AI Assistant");
+
+                    // Add copy button on the right side for AI messages
+                    ImGui::SameLine(ImGui::GetWindowWidth() - 60);
+                    std::string copyButtonId = "Copy##" + std::to_string(i);
+                    if (ImGui::SmallButton(copyButtonId.c_str())) {
+                        SDL_SetClipboardText(msg.text.c_str());
+                    }
+                    if (ImGui::IsItemHovered()) {
+                        ImGui::SetTooltip("Copy message to clipboard");
+                    }
                 }
 
                 ImGui::Separator();
@@ -341,9 +351,9 @@ private:
                 }
             }
 
-            ImGui::Spacing();
-            ImGui::Text("UI Settings");
-            ImGui::Separator();
+            // ImGui::Spacing();
+            // ImGui::Text("UI Settings");
+            // ImGui::Separator();
 
             ImGui::Spacing();
 
