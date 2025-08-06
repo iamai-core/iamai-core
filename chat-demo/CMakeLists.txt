@@ -12,9 +12,11 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 #     set(OPENGL_LIBRARIES ${OPENGL_gl_LIBRARY})
 # endif()
 
-
+option(BUILD_SHARED_LIBS "build shared libraries" OFF)
 add_subdirectory(${CMAKE_SOURCE_DIR}/llama.cpp ${CMAKE_BINARY_DIR}/llama.cpp-build)
 
+option(SDL_SHARED "Build SDL3 shared library" OFF)
+option(SDL_STATIC "Build SDL3 static library" ON)
 # set(SDL_SHARED OFF CACHE BOOL "Build SDL3 shared library" FORCE)
 # set(SDL_STATIC ON CACHE BOOL "Build SDL3 static library" FORCE)
 add_subdirectory(SDL SDL-build)

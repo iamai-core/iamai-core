@@ -69,14 +69,8 @@ void Interface::loadModel(const std::string& modelPath) {
 
 void Interface::setThreadDefaults() {
     unsigned int maxThreads = std::thread::hardware_concurrency();
-    if (maxThreads <= 4) config.threads = 1;
-    else config.threads = maxThreads / 4;
-}
-
-void Interface::initializeModel(const std::string& modelPath) {
-    // This method is kept for backward compatibility if needed
-    // but now just calls the refactored methods
-    loadModel(modelPath);
+    if (maxThreads <= 2) config.threads = 1;
+    else config.threads = maxThreads / 2;
 }
 
 void Interface::initializeContext() {

@@ -20,6 +20,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 # option(GGML_METAL                           "ggml: use Metal"                                 ON)
 # option(GGML_METAL_USE_BF16                  "ggml: use bfloat if available"                   ON)
 
+option(BUILD_SHARED_LIBS "build shared libraries" OFF)
 add_subdirectory(${CMAKE_SOURCE_DIR}/llama.cpp ${CMAKE_BINARY_DIR}/llama.cpp-build)
 
 

@@ -58,7 +58,6 @@ private:
 
     void loadModel(const std::string& modelPath);     // Pure model loading
     void setThreadDefaults();                         // Set default thread count
-    void initializeModel(const std::string& modelPath); // Backward compatibility
     void initializeContext();  // Context and sampler setup
     void formatNewPrompt(const std::string& input, std::string& output);
 
