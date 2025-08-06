@@ -60,7 +60,7 @@ private:
 public:
     ChatDemo() {
         // Add welcome message
-        messages.emplace_back("Welcome to iamai-core! I'm your personal AI assistant running locally on your device. "
+        messages.emplace_back("Welcome to iamai-core! I'm your personal AI companion running locally on your device. "
                              "Your conversations are completely private - no data leaves your computer. "
                              "Ask me anything, and let's explore what local AI can do!", false);
     }
@@ -243,7 +243,7 @@ private:
                 if (msg.isUser) {
                     ImGui::TextColored(ImVec4(0.6f, 0.8f, 1.0f, 1.0f), "You");
                 } else {
-                    ImGui::TextColored(ImVec4(0.8f, 1.0f, 0.6f, 1.0f), "AI Assistant");
+                    ImGui::TextColored(ImVec4(0.8f, 1.0f, 0.6f, 1.0f), "AI Companion");
 
                     // Add copy button on the right side for AI messages
                     ImGui::SameLine(ImGui::GetWindowWidth() - 60);
@@ -560,7 +560,7 @@ int main(int argc, char* argv[]) {
     SDL_Event event;
     ImVec4 clear_color = ImVec4(0.05f, 0.05f, 0.05f, 1.00f);
 
-    std::cout << "Chat demo started successfully! Interact with your local AI assistant." << std::endl;
+    std::cout << "Chat demo started successfully! Interact with your local AI companion." << std::endl;
 
     while (running) {
         // Handle events
