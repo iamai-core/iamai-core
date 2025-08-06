@@ -14,27 +14,20 @@ struct Context {
 
 extern "C" {
 
-
 EXPORT Context* Init(const char* model_path) {
-
     try {
-        
         Context* ctx = new Context();
         ctx->interface = new Interface(model_path);
         return ctx;
-        
     } catch (...) {
         return nullptr;
     }
-
 }
 
-EXPORT Context* FullInit(const char* model_path, int max_tokens, int batch, int size, int threads, int top_k, float top_p, float temperature, uint32_t seed ) {
-    
+EXPORT Context* FullInit(const char* model_path, int max_tokens, int batch, int size, int threads, int top_k, float top_p, float temperature, uint32_t seed) {
     try {
+        Context* ctx = new Context();
 
-        Context* ctx = new Context( );
-        
         Interface::Config config;
         config.max_tokens = max_tokens;
         config.batch = batch;
@@ -48,24 +41,32 @@ EXPORT Context* FullInit(const char* model_path, int max_tokens, int batch, int 
 
         ctx->interface = new Interface(model_path, config);
         return ctx;
-
     } catch (...) {
-
         return nullptr;
-
     }
-
 }
 
-EXPORT void SetPromptFormat( Context* ctx, const char* format) {
-
-    if (ctx) ctx->interface->setPromptFormat( format );
-
+EXPORT void SetPromptFormat(Context* ctx, const char* format) {
+    if (ctx) ctx->interface->setPromptFormat(format);
 }
-EXPORT void ClearPromptFormat( Context* ctx) {
 
+EXPORT void ClearPromptFormat(Context* ctx) {
     if (ctx) ctx->interface->clearPromptFormat();
+}
 
+// New KV cache management functions
+EXPORT void ClearContext(Context* ctx) {
+    if (ctx) ctx->interface->clearContext();
+}
+
+EXPORT int GetContextUsage(Context* ctx) {
+    if (ctx) return ctx->interface->getContextUsage();
+    return 0;
+}
+
+EXPORT int GetContextSize(Context* ctx) {
+    if (ctx) return ctx->interface->getContextSize();
+    return 0;
 }
 
 // Generate text from a prompt

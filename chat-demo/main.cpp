@@ -69,13 +69,15 @@ public:
         try {
             std::cout << "Initializing iamai-core with model: " << modelPath << std::endl;
 
-            Interface::Config config;
-            config.max_tokens = maxTokens;
-            config.temperature = temperature;
-            config.ctx = 4096; // Larger context for better conversations
-            config.batch = 32; // Optimized batch size
+            // Interface::Config config;
+            // config.max_tokens = maxTokens;
+            // config.temperature = temperature;
+            // config.ctx = 4096; // Larger context for better conversations
+            // config.batch = 32; // Optimized batch size
+            // aiInterface = std::make_unique<Interface>(modelPath, config);
 
-            aiInterface = std::make_unique<Interface>(modelPath, config);
+            aiInterface = std::make_unique<Interface>(modelPath);
+            aiInterface->setMaxTokens(maxTokens);
 
             if (usePromptFormat) {
                 aiInterface->setPromptFormat("Human: {prompt}\n\nAssistant: ");
