@@ -22,3 +22,7 @@
 	path = chat-demo/imgui
 	url = https://github.com/ocornut/imgui.git
 	branch = master
+[submodule "chat-demo/curl"]
+	path = chat-demo/curl
+	url = https://github.com/curl/curl.git
+	branch = master
