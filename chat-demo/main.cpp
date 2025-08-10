@@ -38,6 +38,7 @@ private:
     bool showSettings = false;
     bool showAbout = false;
     bool autoScroll = true;
+    bool hasLoadedWindowSettings = false;
 
     // Performance metrics
     std::chrono::high_resolution_clock::time_point lastGenStart;
@@ -139,23 +140,32 @@ public:
         }
     }
 
-    void RenderChat() {
+    void RenderChat(SDL_Window* window) {
         loadSettings();
 
-        // Calculate available space for the chat area
-        ImVec2 windowSize = ImGui::GetIO().DisplaySize;
-        ImVec2 windowPos = ImVec2(0, 0);
-
-        // Set window to fill entire viewport
-        ImGui::SetNextWindowPos(windowPos);
-        ImGui::SetNextWindowSize(windowSize);
-
-        ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration |
-                                       ImGuiWindowFlags_NoResize |
-                                       ImGuiWindowFlags_NoMove |
-                                       ImGuiWindowFlags_NoBringToFrontOnFocus;
+        ImGuiWindowFlags window_flags;
+        if (!hasLoadedWindowSettings) {
+            window_flags = 0;
+        } else {
+            window_flags = ImGuiWindowFlags_NoDecoration |
+                          ImGuiWindowFlags_NoResize |
+                          ImGuiWindowFlags_NoMove |
+                          ImGuiWindowFlags_NoBringToFrontOnFocus;
+        }
 
         if (ImGui::Begin("iamai-core Chat Demo", nullptr, window_flags)) {
+
+            ImGui::SetWindowPos(ImVec2(0, 0));
+            ImVec2 windowSize = ImGui::GetWindowSize();
+
+            // On first frame resize SDL window to match
+            if (!hasLoadedWindowSettings) {
+                SDL_SetWindowSize(window, (int)windowSize.x, (int)windowSize.y);
+
+                hasLoadedWindowSettings = true;
+            } else{
+                ImGui::SetWindowSize(ImGui::GetIO().DisplaySize);
+            }
 
             // Header with status and controls
             RenderHeader();
@@ -480,7 +490,7 @@ int main(int argc, char* argv[]) {
 
     if (!SDL_CreateWindowAndRenderer(
         "iamai-core - Personal AI Chat Demo",
-        1400, 900,
+        1400, 900,  // Initial size - will be updated from ImGui settings
         SDL_WINDOW_RESIZABLE,
         &window, &renderer)) {
         std::cerr << "SDL_CreateWindowAndRenderer failed: " << SDL_GetError() << std::endl;
@@ -585,8 +595,8 @@ int main(int argc, char* argv[]) {
         ImGui_ImplSDL3_NewFrame();
         ImGui::NewFrame();
 
-        // Render chat interface
-        chatDemo.RenderChat();
+        // Render chat interface - pass SDL window for resizing
+        chatDemo.RenderChat(window);
 
         // Render frame
         ImGui::Render();
