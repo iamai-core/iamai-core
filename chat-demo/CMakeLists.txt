@@ -2,16 +2,6 @@
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
-# # Find OpenGL
-# if(WIN32)
-#     set(OPENGL_LIBRARIES opengl32)
-# elseif(APPLE)
-#     find_library(OPENGL_LIBRARIES OpenGL)
-# else()
-#     find_package(OpenGL REQUIRED)
-#     set(OPENGL_LIBRARIES ${OPENGL_gl_LIBRARY})
-# endif()
-
 option(BUILD_SHARED_LIBS "build shared libraries" OFF)
 add_subdirectory(${CMAKE_SOURCE_DIR}/llama.cpp ${CMAKE_BINARY_DIR}/llama.cpp-build)
 
@@ -95,6 +85,7 @@ target_link_libraries(imgui PUBLIC SDL3::SDL3)
 # Chat demo executable
 add_executable(chat-demo
     main.cpp
+    settings_manager.cpp
     ${CMAKE_SOURCE_DIR}/core/interface.cpp
     ${CMAKE_SOURCE_DIR}/core/win.rc
 )
@@ -102,6 +93,5 @@ target_link_libraries(chat-demo PRIVATE
     llama
     SDL3::SDL3
     imgui
-    # libcurl
-    # ${OPENGL_LIBRARIES}
+    libcurl
 )

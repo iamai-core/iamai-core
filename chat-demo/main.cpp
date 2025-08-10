@@ -1,4 +1,5 @@
 #include "../core/interface.h"
+#include "settings_manager.h"
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
 #include <iostream>
@@ -26,6 +27,7 @@ struct ChatMessage {
 class ChatDemo {
 private:
     std::unique_ptr<Interface> aiInterface;
+    std::unique_ptr<SettingsManager> settingsManager;
     std::vector<ChatMessage> messages;
     char inputBuffer[1024] = {0};
     std::atomic<bool> isGenerating{false};
@@ -47,6 +49,18 @@ private:
     float temperature = 0.7f;
     bool usePromptFormat = true;
 
+    void loadSettings() {
+        maxTokens = settingsManager->getInt("maxTokens", maxTokens);
+        temperature = settingsManager->getFloat("temperature", temperature);
+        usePromptFormat = settingsManager->getBool("usePromptFormat", usePromptFormat);
+    }
+
+    void saveSettings() {
+        settingsManager->setInt("maxTokens", maxTokens);
+        settingsManager->setFloat("temperature", temperature);
+        settingsManager->setBool("usePromptFormat", usePromptFormat);
+    }
+
     // Predefined prompts
     std::vector<std::string> quickPrompts = {
         "Tell me about yourself",
@@ -59,6 +73,8 @@ private:
 
 public:
     ChatDemo() {
+        settingsManager = std::make_unique<SettingsManager>("ChatDemo");
+
         // Add welcome message
         messages.emplace_back("Welcome to iamai-core! I'm your personal AI companion running locally on your device. "
                              "Your conversations are completely private - no data leaves your computer. "
@@ -68,13 +84,6 @@ public:
     bool Initialize(const std::string& modelPath) {
         try {
             std::cout << "Initializing iamai-core with model: " << modelPath << std::endl;
-
-            // Interface::Config config;
-            // config.max_tokens = maxTokens;
-            // config.temperature = temperature;
-            // config.ctx = 4096; // Larger context for better conversations
-            // config.batch = 32; // Optimized batch size
-            // aiInterface = std::make_unique<Interface>(modelPath, config);
 
             aiInterface = std::make_unique<Interface>(modelPath);
             aiInterface->setMaxTokens(maxTokens);
@@ -131,6 +140,8 @@ public:
     }
 
     void RenderChat() {
+        loadSettings();
+
         // Calculate available space for the chat area
         ImVec2 windowSize = ImGui::GetIO().DisplaySize;
         ImVec2 windowPos = ImVec2(0, 0);
@@ -167,9 +178,6 @@ public:
             RenderInput();
         }
         ImGui::End();
-
-        // Settings dropdown (no longer as separate window)
-        // About dropdown (no longer as separate window)
     }
 
 private:
@@ -337,10 +345,13 @@ private:
                 if (aiInterface) {
                     aiInterface->setMaxTokens(maxTokens);
                 }
+                saveSettings();
             }
 
             // Temperature
-            ImGui::SliderFloat("Temperature", &temperature, 0.1f, 2.0f, "%.1f");
+            if (ImGui::SliderFloat("Temperature", &temperature, 0.1f, 2.0f, "%.1f")) {
+                saveSettings();
+            }
 
             // Prompt formatting
             if (ImGui::Checkbox("Use Prompt Format", &usePromptFormat)) {
@@ -351,24 +362,14 @@ private:
                         aiInterface->clearPromptFormat();
                     }
                 }
+                saveSettings();
             }
-
-            // ImGui::Spacing();
-            // ImGui::Text("UI Settings");
-            // ImGui::Separator();
 
             ImGui::Spacing();
 
             if (ImGui::Button("Clear Chat History", ImVec2(-1, 0))) {
                 messages.clear();
                 messages.emplace_back("Chat history cleared. How can I help you?", false);
-                showSettings = false;
-            }
-
-            if (ImGui::Button("Reset to Defaults", ImVec2(-1, 0))) {
-                maxTokens = 256;
-                temperature = 0.7f;
-                usePromptFormat = true;
                 showSettings = false;
             }
 
@@ -494,6 +495,7 @@ int main(int argc, char* argv[]) {
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+    io.IniFilename = "iamai.ini";
 
     // Get DPI scaling for 4K monitor support using SDL3
     float dpiScale = 1.0f;
