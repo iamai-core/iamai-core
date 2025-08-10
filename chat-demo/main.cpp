@@ -38,7 +38,6 @@ private:
     bool showSettings = false;
     bool showAbout = false;
     bool autoScroll = true;
-    bool hasLoadedWindowSettings = false;
 
     // Performance metrics
     std::chrono::high_resolution_clock::time_point lastGenStart;
@@ -140,36 +139,37 @@ public:
         }
     }
 
-    void RenderChat(SDL_Window* window) {
+    // Initial render for setting up window size and initial state
+    void RenderChatInitial(SDL_Window* window) {
+        // ImGui ini settings are not available until here
         loadSettings();
 
-        ImGuiWindowFlags window_flags;
-        if (!hasLoadedWindowSettings) {
-            window_flags = 0;
-        } else {
-            window_flags = ImGuiWindowFlags_NoDecoration |
-                          ImGuiWindowFlags_NoResize |
-                          ImGuiWindowFlags_NoMove |
-                          ImGuiWindowFlags_NoBringToFrontOnFocus;
-        }
-
-        if (ImGui::Begin("iamai-core Chat Demo", nullptr, window_flags)) {
-
-            ImGui::SetWindowPos(ImVec2(0, 0));
+        // First frame - no window flags to allow ImGui to determine initial size
+        if (ImGui::Begin("iamai-core Chat Demo", nullptr, 0)) {
+            // Get the initial window size from ImGui settings
             ImVec2 windowSize = ImGui::GetWindowSize();
 
-            // On first frame resize SDL window to match
-            if (!hasLoadedWindowSettings) {
-                SDL_SetWindowSize(window, (int)windowSize.x, (int)windowSize.y);
+            // Set SDL window size to match ImGui window
+            SDL_SetWindowSize(window, (int)windowSize.x, (int)windowSize.y);
+        }
+        ImGui::End();
+    }
 
-                hasLoadedWindowSettings = true;
-            } else{
-                ImGui::SetWindowSize(ImGui::GetIO().DisplaySize);
-            }
+    // Main render for the running loop
+    void RenderChat() {
+        ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration |
+                                       ImGuiWindowFlags_NoResize |
+                                       ImGuiWindowFlags_NoMove |
+                                       ImGuiWindowFlags_NoBringToFrontOnFocus;
+
+        if (ImGui::Begin("iamai-core Chat Demo", nullptr, window_flags)) {
+            // Position inner imgui window at origin and size to SDL window
+            ImVec2 windowSize = ImGui::GetIO().DisplaySize;
+            ImGui::SetWindowPos(ImVec2(0, 0));
+            ImGui::SetWindowSize(windowSize);
 
             // Header with status and controls
             RenderHeader();
-
             ImGui::Separator();
 
             // Main chat area - calculate height dynamically
@@ -554,25 +554,40 @@ int main(int argc, char* argv[]) {
     colors[ImGuiCol_Button] = ImVec4(0.26f, 0.59f, 0.98f, 0.40f);
     colors[ImGuiCol_ButtonHovered] = ImVec4(0.26f, 0.59f, 0.98f, 1.00f);
     colors[ImGuiCol_ButtonActive] = ImVec4(0.06f, 0.53f, 0.98f, 1.00f);
+    ImVec4 clear_color = ImVec4(0.05f, 0.05f, 0.05f, 1.00f);
 
     // Setup Platform/Renderer backends
     ImGui_ImplSDL3_InitForSDLRenderer(window, renderer);
     ImGui_ImplSDLRenderer3_Init(renderer);
 
-    // Initialize chat demo
-    ChatDemo chatDemo;
-    bool modelLoaded = chatDemo.Initialize("./models/Llama-3.2-1B-Instruct-Q4_K_M.gguf");
+    // Start initial ImGui frame
+    ImGui_ImplSDLRenderer3_NewFrame();
+    ImGui_ImplSDL3_NewFrame();
+    ImGui::NewFrame();
 
+
+    // Render initial chat interface to establish proper window sizing
+    ChatDemo chatDemo;
+    chatDemo.RenderChatInitial(window);
+
+    // Complete the initial frame
+    ImGui::Render();
+    SDL_SetRenderDrawColorFloat(renderer, clear_color.x, clear_color.y, clear_color.z, clear_color.w);
+    SDL_RenderClear(renderer);
+    ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData(), renderer);
+    SDL_RenderPresent(renderer);
+
+    bool modelLoaded = chatDemo.Initialize("./models/Llama-3.2-1B-Instruct-Q4_K_M.gguf");
     if (!modelLoaded) {
         std::cerr << "Warning: Model failed to load. Demo will run with limited functionality." << std::endl;
     }
 
+    std::cout << "Chat demo started successfully! Interact with your local AI companion." << std::endl;
+
+
     // Main loop
     bool running = true;
     SDL_Event event;
-    ImVec4 clear_color = ImVec4(0.05f, 0.05f, 0.05f, 1.00f);
-
-    std::cout << "Chat demo started successfully! Interact with your local AI companion." << std::endl;
 
     while (running) {
         // Handle events
@@ -595,8 +610,7 @@ int main(int argc, char* argv[]) {
         ImGui_ImplSDL3_NewFrame();
         ImGui::NewFrame();
 
-        // Render chat interface - pass SDL window for resizing
-        chatDemo.RenderChat(window);
+        chatDemo.RenderChat();
 
         // Render frame
         ImGui::Render();
