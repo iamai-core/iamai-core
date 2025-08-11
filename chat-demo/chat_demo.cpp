@@ -1,7 +1,18 @@
+// Prevent Windows API conflicts before any includes
+#ifdef _WIN32
+#define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
+#ifndef NOGDI
+#define NOGDI
+#endif
+#ifndef NOUSER
+#define NOUSER
+#endif
+#endif
+
 #include "chat_demo.h"
 #include <iostream>
 #include <filesystem>
-#include <curl/curl.h>
 #include "imgui.h"
 
 ChatMessage::ChatMessage(const std::string& msg, bool user)
@@ -123,7 +134,7 @@ bool ChatDemo::Initialize(const std::string& modelPath) {
     }
 }
 
-void ChatDemo::SendMessage(const std::string& userInput) {
+void ChatDemo::SendChatMessage(const std::string& userInput) {
     if (userInput.empty() || isGenerating) return;
 
     Interface* interface = modelManager->getCurrentModel();

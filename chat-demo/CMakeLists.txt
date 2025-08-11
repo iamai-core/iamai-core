@@ -93,9 +93,6 @@ add_executable(chat-demo
     ${CMAKE_SOURCE_DIR}/core/interface.cpp
     ${CMAKE_SOURCE_DIR}/core/win.rc
 )
-target_include_directories(chat-demo PRIVATE
-    ${CMAKE_SOURCE_DIR}/core
-)
 target_link_libraries(chat-demo PRIVATE
     llama
     SDL3::SDL3

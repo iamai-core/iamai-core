@@ -1,5 +1,20 @@
 #pragma once
 
+// Prevent Windows.h from defining macros that conflict with our code
+#ifdef _WIN32
+#define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
+#ifndef NOGDI
+#define NOGDI
+#endif
+#ifndef NOUSER
+#define NOUSER
+#endif
+#endif
+
+// Include curl headers before other headers to avoid conflicts
+#include <curl/curl.h>
+
 #include "../core/interface.h"
 #include "../core/folder_manager.h"
 #include "../core/model_manager.h"
@@ -90,7 +105,7 @@ private:
 public:
     ChatDemo();
     bool Initialize(const std::string& modelPath = "");
-    void SendMessage(const std::string& userInput);
+    void SendChatMessage(const std::string& userInput);
     void Update();
     void RenderChatInitial(SDL_Window* window);
     void RenderChat();

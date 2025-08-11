@@ -1,3 +1,15 @@
+// Prevent Windows API conflicts before any includes
+#ifdef _WIN32
+#define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
+#ifndef NOGDI
+#define NOGDI
+#endif
+#ifndef NOUSER
+#define NOUSER
+#endif
+#endif
+
 #include "chat_demo.h"
 #include <iostream>
 #include <filesystem>
@@ -248,7 +260,7 @@ void ChatDemo::RenderInput() {
     bool sendClicked = ImGui::Button("Send", ImVec2(70, 0));
 
     if ((enterPressed || sendClicked) && !isGenerating && strlen(inputBuffer) > 0) {
-        SendMessage(std::string(inputBuffer));
+        SendChatMessage(std::string(inputBuffer));
         memset(inputBuffer, 0, sizeof(inputBuffer));
     }
 
