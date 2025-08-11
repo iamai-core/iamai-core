@@ -85,9 +85,16 @@ target_link_libraries(imgui PUBLIC SDL3::SDL3)
 # Chat demo executable
 add_executable(chat-demo
     main.cpp
+    chat_demo.cpp
+    chat_demo_ui.cpp
     settings_manager.cpp
+    ${CMAKE_SOURCE_DIR}/core/folder_manager.cpp
+    ${CMAKE_SOURCE_DIR}/core/model_manager.cpp
     ${CMAKE_SOURCE_DIR}/core/interface.cpp
     ${CMAKE_SOURCE_DIR}/core/win.rc
+)
+target_include_directories(chat-demo PRIVATE
+    ${CMAKE_SOURCE_DIR}/core
 )
 target_link_libraries(chat-demo PRIVATE
     llama
