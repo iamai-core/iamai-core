@@ -3,6 +3,7 @@
 #include <SDL3/SDL_main.h>
 #include <iostream>
 #include <curl/curl.h>
+#include "../core/folder_manager.h"
 
 // ImGui
 #include "imgui.h"
@@ -17,12 +18,20 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+    SDL_DisplayID primaryDisplay = SDL_GetPrimaryDisplay();
+    SDL_Rect usableBounds;
+    int windowWidth = 800; int windowHeight = 600;
+    if (SDL_GetDisplayUsableBounds(primaryDisplay, &usableBounds)) {
+        windowWidth = static_cast<int>(usableBounds.w * 0.5f);
+        windowHeight = static_cast<int>(usableBounds.h * 0.5f);
+    }
+
     SDL_Window* window = nullptr;
     SDL_Renderer* renderer = nullptr;
 
     if (!SDL_CreateWindowAndRenderer(
         "iamai-core - Personal AI Chat Demo",
-        1400, 900,
+        windowWidth, windowHeight,
         SDL_WINDOW_RESIZABLE,
         &window, &renderer)) {
         std::cerr << "SDL_CreateWindowAndRenderer failed: " << SDL_GetError() << std::endl;
@@ -36,7 +45,18 @@ int main(int argc, char* argv[]) {
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-    io.IniFilename = "iamai.ini";
+
+    // Set ImGui ini file path to config directory
+    try {
+        auto& folder_manager = iamai::FolderManager::getInstance();
+        folder_manager.createFolderStructure(); // Ensure directories exist
+
+        static std::string ini_path = (folder_manager.getConfigPath() / "chat-demo.ini").string();
+        io.IniFilename = ini_path.c_str();
+    } catch (const std::exception& e) {
+        std::cerr << "Warning: Failed to set config path, using default: " << e.what() << std::endl;
+        io.IniFilename = "chat-demo.ini"; // Fallback to current directory
+    }
 
     float dpiScale = 1.0f;
     SDL_DisplayID displayID = SDL_GetDisplayForWindow(window);

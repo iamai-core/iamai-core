@@ -22,7 +22,6 @@ ChatDemo::ChatDemo() {
     settingsManager = std::make_unique<SettingsManager>("ChatDemo");
 
     auto& folder_manager = iamai::FolderManager::getInstance();
-    folder_manager.createFolderStructure();
 
     modelManager = std::make_unique<iamai::ModelManager>();
     refreshModelList();
@@ -212,7 +211,9 @@ void ChatDemo::RenderChatInitial(SDL_Window* window) {
 
     if (ImGui::Begin("iamai-core Chat Demo", nullptr, 0)) {
         ImVec2 windowSize = ImGui::GetWindowSize();
-        SDL_SetWindowSize(window, (int)windowSize.x, (int)windowSize.y);
+        if (windowSize.x > 320.0f || windowSize.y > 240.0f) {
+            SDL_SetWindowSize(window, (int)windowSize.x, (int)windowSize.y);
+        }
     }
     ImGui::End();
 }

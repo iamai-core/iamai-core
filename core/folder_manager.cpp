@@ -179,7 +179,7 @@ std::filesystem::path FolderManager::getCurrentExecutablePath() const {
 
 bool FolderManager::createFolderStructure() {
     try {
-        std::cout << "Creating iamai-core folder structure..." << std::endl;
+        std::cout << "Checking iamai-core folder structure..." << std::endl;
 
         // Get system paths
         std::filesystem::path configBase = getSystemConfigPath();
@@ -203,17 +203,18 @@ bool FolderManager::createFolderStructure() {
         m_appBinaryPath = executableBase;                      // Where the executable lives
         m_runtimeLibsPath = executableBase;                    // CUDA DLLs alongside executable
 
+        // Create persistent data directories
         fs::create_directories(m_configPath);
-        std::cout << "Created config: " << m_configPath << std::endl;
+        std::cout << "Config: " << m_configPath << std::endl;
 
         fs::create_directories(m_dataPath);
-        std::cout << "Created data: " << m_dataPath << std::endl;
+        std::cout << "Data: " << m_dataPath << std::endl;
 
         fs::create_directories(m_cachePath);
-        std::cout << "Created cache: " << m_cachePath << std::endl;
+        std::cout << "Cache: " << m_cachePath << std::endl;
 
         fs::create_directories(m_modelsPath);
-        std::cout << "Created models: " << m_modelsPath << std::endl;
+        std::cout << "Models: " << m_modelsPath << std::endl;
 
         // Application binary directories (may already exist)
         std::cout << "Application binaries: " << m_appBinaryPath << std::endl;
@@ -234,7 +235,6 @@ bool FolderManager::createFolderStructure() {
                    << "Start with smaller models (1B-3B parameters) for testing.\n";
         }
 
-        std::cout << "Folder structure created successfully!" << std::endl;
         return true;
 
     } catch (const std::exception& e) {
