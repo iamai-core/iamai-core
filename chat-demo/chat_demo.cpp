@@ -63,23 +63,48 @@ bool ChatDemo::downloadModel(const std::string& url, const std::string& filename
         return false;
     }
 
+    // Set curl options
     curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, fp);
-    curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, ProgressCallback);
-    curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, &downloadProgress);
+
+    // Progress callback setup - use XFERINFOFUNCTION for newer libcurl
+    curl_easy_setopt(curl, CURLOPT_XFERINFOFUNCTION, [](void* clientp, curl_off_t dltotal, curl_off_t dlnow, curl_off_t ultotal, curl_off_t ulnow) -> int {
+        DownloadProgress* progress = static_cast<DownloadProgress*>(clientp);
+        progress->total = static_cast<double>(dltotal);
+        progress->downloaded = static_cast<double>(dlnow);
+        return 0;
+    });
+    curl_easy_setopt(curl, CURLOPT_XFERINFODATA, &downloadProgress);
     curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
+
+    // Additional options for better download handling
     curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
     curl_easy_setopt(curl, CURLOPT_TIMEOUT, 3600L);
+    curl_easy_setopt(curl, CURLOPT_USERAGENT, "iamai-core/1.0");
+    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 1L);
+    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 2L);
 
     CURLcode res = curl_easy_perform(curl);
     fclose(fp);
+
+    // Check response code
+    long response_code;
+    curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
+
     curl_easy_cleanup(curl);
 
     if (res != CURLE_OK) {
         std::filesystem::remove(model_path);
         downloadProgress.error = true;
-        downloadProgress.error_message = curl_easy_strerror(res);
+        downloadProgress.error_message = std::string("Download failed: ") + curl_easy_strerror(res);
+        return false;
+    }
+
+    if (response_code >= 400) {
+        std::filesystem::remove(model_path);
+        downloadProgress.error = true;
+        downloadProgress.error_message = "HTTP error: " + std::to_string(response_code);
         return false;
     }
 

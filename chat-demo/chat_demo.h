@@ -63,6 +63,7 @@ private:
 
     // Model management
     std::vector<std::string> availableModels;
+    std::string currentLoadedModel;
     char downloadUrlBuffer[1024] = "https://huggingface.co/unsloth/Llama-3.2-1B-Instruct-GGUF/resolve/main/Llama-3.2-1B-Instruct-Q4_K_M.gguf?download=true";
     DownloadProgress downloadProgress;
     std::future<bool> downloadFuture;

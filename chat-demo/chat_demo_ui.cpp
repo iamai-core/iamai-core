@@ -18,6 +18,8 @@
 void ChatDemo::RenderHeader() {
     if (ImGui::Button("Models")) {
         showModels = !showModels;
+        showSettings = false; // Close other dropdowns
+        showAbout = false;
     }
 
     ImVec2 modelsButtonPos = ImGui::GetItemRectMin();
@@ -26,6 +28,8 @@ void ChatDemo::RenderHeader() {
     ImGui::SameLine();
     if (ImGui::Button("Settings")) {
         showSettings = !showSettings;
+        showModels = false; // Close other dropdowns
+        showAbout = false;
     }
 
     ImVec2 settingsButtonPos = ImGui::GetItemRectMin();
@@ -34,6 +38,8 @@ void ChatDemo::RenderHeader() {
     ImGui::SameLine();
     if (ImGui::Button("About")) {
         showAbout = !showAbout;
+        showModels = false; // Close other dropdowns
+        showSettings = false;
     }
 
     ImVec2 aboutButtonPos = ImGui::GetItemRectMin();
@@ -49,6 +55,12 @@ void ChatDemo::RenderHeader() {
         ImGui::TextColored(ImVec4(0.5f, 0.5f, 0.5f, 1.0f), "● Ready");
     }
 
+    // Show current model if loaded
+    if (!currentLoadedModel.empty()) {
+        ImGui::SameLine();
+        ImGui::TextColored(ImVec4(0.8f, 0.8f, 1.0f, 1.0f), "| Model: %s", currentLoadedModel.c_str());
+    }
+
     if (lastGenTime > 0) {
         ImGui::SameLine();
         float tokensPerSec = tokensGenerated / lastGenTime;
@@ -56,7 +68,7 @@ void ChatDemo::RenderHeader() {
     }
 
     if (showModels) {
-        ImGui::SetNextWindowPos(modelsButtonPos);
+        ImGui::SetNextWindowPos(ImVec2(10, modelsButtonPos.y)); // Position with 10px margin
         RenderModelsDropdown();
     }
 
@@ -72,17 +84,30 @@ void ChatDemo::RenderHeader() {
 }
 
 void ChatDemo::RenderModelsDropdown() {
+    // Set fixed window size with 10px margins
+    ImVec2 windowSize = ImGui::GetIO().DisplaySize;
+    float margin = 10.0f;
+    ImVec2 popupSize = ImVec2(windowSize.x - (margin * 2), 400.0f);
+
     ImGuiWindowFlags popup_flags = ImGuiWindowFlags_NoMove |
                                   ImGuiWindowFlags_NoResize |
-                                  ImGuiWindowFlags_NoTitleBar |
-                                  ImGuiWindowFlags_AlwaysAutoResize;
+                                  ImGuiWindowFlags_NoTitleBar;
 
-    if (ImGui::Begin("##ModelsDropdown", nullptr, popup_flags)) {
+    ImGui::SetNextWindowSize(popupSize);
+
+    if (ImGui::Begin("##ModelsDropdown", &showModels, popup_flags)) {
+        // Refresh model list when popup opens
+        static bool lastShowModels = false;
+        if (showModels && !lastShowModels) {
+            refreshModelList();
+        }
+        lastShowModels = showModels;
+
         ImGui::Text("Model Management");
         ImGui::Separator();
 
         ImGui::Text("Download Model:");
-        ImGui::PushItemWidth(400);
+        ImGui::PushItemWidth(-120); // Leave space for Download button
         ImGui::InputText("##downloadUrl", downloadUrlBuffer, sizeof(downloadUrlBuffer));
         ImGui::PopItemWidth();
 
@@ -133,47 +158,83 @@ void ChatDemo::RenderModelsDropdown() {
         ImGui::Separator();
         ImGui::Text("Available Models:");
 
-        for (const auto& model : availableModels) {
-            if (ImGui::Selectable(model.c_str())) {
-                if (modelManager->switchModel(model)) {
-                    Interface* interface = modelManager->getCurrentModel();
-                    if (interface) {
-                        interface->setMaxTokens(maxTokens);
-                        if (usePromptFormat) {
-                            interface->setPromptFormat("Human: {prompt}\n\nAssistant: ");
-                        }
-                    }
-                    messages.emplace_back("Switched to model: " + model, false);
-                } else {
-                    messages.emplace_back("Failed to switch to model: " + model, false);
-                }
-                showModels = false;
-            }
+        // Get current model name for highlighting
+        std::string currentModelName;
+        Interface* currentInterface = modelManager->getCurrentModel();
+        if (currentInterface) {
+            currentModelName = currentLoadedModel;
+        }
 
-            ImGui::SameLine(ImGui::GetWindowWidth() - 30);
-            std::string deleteButtonId = "X##" + model;
-            if (ImGui::SmallButton(deleteButtonId.c_str())) {
-                auto& folder_manager = iamai::FolderManager::getInstance();
-                std::filesystem::path model_path = folder_manager.getModelsPath() / model;
-                try {
-                    std::filesystem::remove(model_path);
-                    refreshModelList();
-                    messages.emplace_back("Deleted model: " + model, false);
-                } catch (const std::exception& e) {
-                    messages.emplace_back("Failed to delete model: " + std::string(e.what()), false);
+        // Create a child window for the model list to handle scrolling
+        if (ImGui::BeginChild("ModelList", ImVec2(0, 200), ImGuiChildFlags_Border)) {
+            for (const auto& model : availableModels) {
+                // Create a unique ID for each model row
+                ImGui::PushID(model.c_str());
+
+                // Highlight currently loaded model
+                bool isCurrentModel = (model == currentModelName);
+                if (isCurrentModel) {
+                    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0f, 0.6f, 0.0f, 0.3f));
+                    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.0f, 0.7f, 0.0f, 0.4f));
+                    ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.0f, 0.8f, 0.0f, 0.5f));
                 }
-            }
-            if (ImGui::IsItemHovered()) {
-                ImGui::SetTooltip("Delete model");
+
+                // Calculate button width to leave space for delete button
+                float deleteButtonWidth = 25.0f;
+                float spacing = ImGui::GetStyle().ItemInnerSpacing.x;
+                float availableWidth = ImGui::GetContentRegionAvail().x - deleteButtonWidth - spacing;
+
+                // Model selection button
+                if (ImGui::Button(model.c_str(), ImVec2(availableWidth, 0))) {
+                    if (modelManager->switchModel(model)) {
+                        Interface* interface = modelManager->getCurrentModel();
+                        if (interface) {
+                            interface->setMaxTokens(maxTokens);
+                            if (usePromptFormat) {
+                                interface->setPromptFormat("Human: {prompt}\n\nAssistant: ");
+                            }
+                        }
+                        currentLoadedModel = model; // Track current model
+                        messages.emplace_back("Switched to model: " + model, false);
+                    } else {
+                        messages.emplace_back("Failed to switch to model: " + model, false);
+                    }
+                    showModels = false;
+                }
+
+                if (isCurrentModel) {
+                    ImGui::PopStyleColor(3);
+                }
+
+                // Delete button on the same line
+                ImGui::SameLine();
+                if (ImGui::Button("X", ImVec2(deleteButtonWidth, 0))) {
+                    auto& folder_manager = iamai::FolderManager::getInstance();
+                    std::filesystem::path model_path = folder_manager.getModelsPath() / model;
+                    try {
+                        std::filesystem::remove(model_path);
+                        refreshModelList();
+                        messages.emplace_back("Deleted model: " + model, false);
+
+                        // Clear current model if it was deleted
+                        if (model == currentModelName) {
+                            currentLoadedModel.clear();
+                        }
+                    } catch (const std::exception& e) {
+                        messages.emplace_back("Failed to delete model: " + std::string(e.what()), false);
+                    }
+                }
+                if (ImGui::IsItemHovered()) {
+                    ImGui::SetTooltip("Delete model");
+                }
+
+                ImGui::PopID();
             }
         }
+        ImGui::EndChild();
 
         ImGui::Spacing();
         if (ImGui::Button("Close", ImVec2(-1, 0))) {
-            showModels = false;
-        }
-
-        if (ImGui::IsMouseClicked(0) && !ImGui::IsWindowHovered() && !ImGui::IsAnyItemHovered()) {
             showModels = false;
         }
     }
