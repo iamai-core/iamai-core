@@ -1,10 +1,15 @@
 #include "folder_manager.h"
-#pragma comment(lib, "shell32.lib")
-#pragma comment(lib, "ole32.lib")
 #include <stdexcept>
-#include <windows.h>
-#include <shlobj.h>
 #include <iostream>
+#include <cstdlib>
+
+#ifdef _WIN32
+    #include <windows.h>
+    #include <shlobj.h>
+    #include <knownfolders.h>
+    #pragma comment(lib, "shell32.lib")
+    #pragma comment(lib, "ole32.lib")
+#endif
 
 namespace iamai {
 
@@ -15,70 +20,93 @@ FolderManager& FolderManager::getInstance() {
     return instance;
 }
 
-std::string FolderManager::getWindowsFolder(int folderId) const {
-    if (folderId == CSIDL_LOCAL_APPDATA) {
-        wchar_t path[MAX_PATH];
-        if (SUCCEEDED(SHGetFolderPathW(NULL, folderId, NULL, SHGFP_TYPE_CURRENT, path))) {
-            std::wstring wPath(path);
-            return std::string(wPath.begin(), wPath.end());
-        }
+std::filesystem::path FolderManager::getSystemAppDataPath() const {
+#ifdef _WIN32
+    PWSTR path = nullptr;
+    if (SUCCEEDED(SHGetKnownFolderPath(FOLDERID_LocalAppData, 0, NULL, &path))) {
+        std::filesystem::path result(path);
+        CoTaskMemFree(path);
+        return result;
     }
-    else if (folderId == CSIDL_PERSONAL) {
-        char* userProfile = nullptr;
-        size_t len;
-        _dupenv_s(&userProfile, &len, "USERPROFILE");
-        if (userProfile != nullptr) {
-            std::string documentsPath = std::string(userProfile) + "\\Documents";
-            free(userProfile);
-            return documentsPath;
-        }
+    throw std::runtime_error("Failed to get Windows AppData path");
+#elif defined(__APPLE__)
+    const char* home = std::getenv("HOME");
+    if (!home) {
+        throw std::runtime_error("Failed to get HOME directory");
     }
-    
-    return "";
+    return fs::path(home) / "Library" / "Application Support";
+#else // Linux and other Unix-like systems
+    const char* xdgConfigHome = std::getenv("XDG_CONFIG_HOME");
+    if (xdgConfigHome) {
+        return fs::path(xdgConfigHome);
+    }
+    const char* home = std::getenv("HOME");
+    if (!home) {
+        throw std::runtime_error("Failed to get HOME directory");
+    }
+    return fs::path(home) / ".config";
+#endif
+}
+
+std::filesystem::path FolderManager::getSystemDocumentsPath() const {
+#ifdef _WIN32
+    PWSTR path = nullptr;
+    if (SUCCEEDED(SHGetKnownFolderPath(FOLDERID_Documents, 0, NULL, &path))) {
+        std::filesystem::path result(path);
+        CoTaskMemFree(path);
+        return result;
+    }
+    throw std::runtime_error("Failed to get Windows Documents path");
+#elif defined(__APPLE__)
+    const char* home = std::getenv("HOME");
+    if (!home) {
+        throw std::runtime_error("Failed to get HOME directory");
+    }
+    return fs::path(home) / "Documents";
+#else // Linux and other Unix-like systems
+    const char* xdgDocuments = std::getenv("XDG_DOCUMENTS_DIR");
+    if (xdgDocuments) {
+        return fs::path(xdgDocuments);
+    }
+    const char* home = std::getenv("HOME");
+    if (!home) {
+        throw std::runtime_error("Failed to get HOME directory");
+    }
+    return fs::path(home) / "Documents";
+#endif
 }
 
 bool FolderManager::createFolderStructure() {
     try {
         std::cout << "Starting folder structure creation..." << std::endl;
+
         // Get system paths
-        std::string localAppData = getWindowsFolder(CSIDL_LOCAL_APPDATA);
-        std::string documentsPath = getWindowsFolder(CSIDL_PERSONAL);
-        
-        std::cout << "Got AppData path: " << localAppData << std::endl;
+        std::filesystem::path appDataPath = getSystemAppDataPath();
+        std::filesystem::path documentsPath = getSystemDocumentsPath();
+
+        std::cout << "Got AppData path: " << appDataPath << std::endl;
         std::cout << "Got Documents path: " << documentsPath << std::endl;
-        
-        if (localAppData.empty() || documentsPath.empty()) {
-            throw std::runtime_error("Failed to get system folders paths");
-        }
 
         // Set up paths
-        m_appDataPath = fs::path(localAppData) / "iamai";
+        m_appDataPath = appDataPath / "iamai";
         m_binPath = m_appDataPath / "bin";
-        m_documentsPath = fs::path(documentsPath) / "iamai";
+        m_documentsPath = documentsPath / "iamai";
         m_modelsPath = m_documentsPath / "models";
 
         // Create all directories
         std::cout << "Creating folder structure..." << std::endl;
-        
-        // Create AppData folders
-        if (!fs::exists(m_appDataPath)) {
-            fs::create_directories(m_appDataPath);
-            std::cout << "Created: " << m_appDataPath << std::endl;
-        }
-        if (!fs::exists(m_binPath)) {
-            fs::create_directories(m_binPath);
-            std::cout << "Created: " << m_binPath << std::endl;
-        }
-        
-        // Create Documents folders
-        if (!fs::exists(m_documentsPath)) {
-            fs::create_directories(m_documentsPath);
-            std::cout << "Created: " << m_documentsPath << std::endl;
-        }
-        if (!fs::exists(m_modelsPath)) {
-            fs::create_directories(m_modelsPath);
-            std::cout << "Created: " << m_modelsPath << std::endl;
-        }
+
+        fs::create_directories(m_appDataPath);
+        std::cout << "Created: " << m_appDataPath << std::endl;
+
+        fs::create_directories(m_binPath);
+        std::cout << "Created: " << m_binPath << std::endl;
+
+        fs::create_directories(m_documentsPath);
+        std::cout << "Created: " << m_documentsPath << std::endl;
+
+        fs::create_directories(m_modelsPath);
+        std::cout << "Created: " << m_modelsPath << std::endl;
 
         return true;
     }

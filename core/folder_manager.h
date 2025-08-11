@@ -26,10 +26,11 @@ public:
 private:
     // Private constructor for singleton
     FolderManager() = default;
-    
+
     // Helper functions
-    std::string getWindowsFolder(int folderId) const;
-    
+    std::filesystem::path getSystemAppDataPath() const;
+    std::filesystem::path getSystemDocumentsPath() const;
+
     // Cached paths
     mutable std::filesystem::path m_appDataPath;
     mutable std::filesystem::path m_binPath;
