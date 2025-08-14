@@ -20,7 +20,7 @@ set(BUILD_LIBCURL_DOCS OFF CACHE BOOL "Build libcurl docs" FORCE)
 set(CURL_ENABLE_EXPORT_TARGET OFF CACHE BOOL "Enable export target" FORCE)
 set(BUILD_EXAMPLES OFF CACHE BOOL "Build examples" FORCE)
 set(CURL_DISABLE_INSTALL ON CACHE BOOL "Disable installation targets" FORCE)
-# # Force disable libpsl and cookies
+# Force disable libpsl and cookies
 set(CURL_USE_LIBPSL OFF CACHE BOOL "Use libpsl for cookie domain checks" FORCE)
 set(CURL_DISABLE_COOKIES ON CACHE BOOL "Disable cookies support" FORCE)
 # Disable protocols you don't need (but enable the ones you want)
@@ -91,8 +91,16 @@ add_executable(chat-demo
     ${CMAKE_SOURCE_DIR}/core/folder_manager.cpp
     ${CMAKE_SOURCE_DIR}/core/model_manager.cpp
     ${CMAKE_SOURCE_DIR}/core/interface.cpp
-    ${CMAKE_SOURCE_DIR}/core/win.rc
+    win.rc
 )
+# Set manifest file for Windows
+if(WIN32)
+    set_target_properties(chat-demo PROPERTIES
+        # Set to TRUE to remove console window
+        WIN32_EXECUTABLE FALSE
+        LINK_FLAGS "/MANIFEST:EMBED /MANIFESTINPUT:${CMAKE_CURRENT_SOURCE_DIR}/app.manifest"
+    )
+endif()
 target_link_libraries(chat-demo PRIVATE
     llama
     SDL3::SDL3
