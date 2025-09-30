@@ -54,7 +54,6 @@ EXPORT void ClearPromptFormat(Context* ctx) {
     if (ctx) ctx->interface->clearPromptFormat();
 }
 
-// New KV cache management functions
 EXPORT void ClearContext(Context* ctx) {
     if (ctx) ctx->interface->clearContext();
 }

@@ -79,10 +79,10 @@ private:
     bool usePromptFormat = false;
 
     std::vector<std::string> quickPrompts = {
-        "Tell me about yourself",
+        "Tell me about yourself.",
         "What can you help me with?",
-        "Explain quantum computing in simple terms",
-        "Write a short story about AI",
+        "Explain quantum computing in simple terms.",
+        "Write a short story about AI.",
         "What are the benefits of local AI?",
         "How does machine learning work?"
     };

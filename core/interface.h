@@ -11,10 +11,10 @@
 class Interface {
 public:
     struct Config {
-        int ctx = 2048;
-        int batch = 64;
-        int max_tokens = 256;
-        int threads = 8;
+        int ctx = 512;
+        int batch = 512;
+        int max_tokens = 64;
+        int threads = 4;
 
         // KV cache management settings
         float cache_keep_ratio = 0.75f;  // Keep 75% of context when full
@@ -22,7 +22,7 @@ public:
 
         int top_k = 50;
         float top_p = 0.9f;
-        float temperature = 0.5f;
+        float temperature = 0.7f;
         uint32_t seed = LLAMA_DEFAULT_SEED;
     };
     Config config;
@@ -30,7 +30,7 @@ public:
     void setMaxTokens(int tokens) { config.max_tokens = tokens; }
     void setPromptFormat(const std::string& promptFormat);
     void clearPromptFormat();
-    void clearContext();  // New method to clear KV cache
+    void clearContext();  // Method to clear KV cache
     int getContextUsage(); // Get current context usage
     int getContextSize();  // Get total context size
 
@@ -38,7 +38,7 @@ public:
     Interface(const std::string& modelPath, Config config);
     ~Interface();
 
-    // Main inference method - now maintains context across calls
+    // Main inference method - maintains context across calls
     std::string generate(const std::string& prompt);
 
 private:
@@ -67,7 +67,7 @@ private:
     bool canFitTokens(int num_tokens);
 
     // Helper methods
-    std::string sampleTokens(bool& should_stop);
+    std::string sampleTokens(bool& should_stop, bool is_first);
     std::vector<llama_token> tokenize(const std::string& text, bool add_bos = true);
     void evaluateTokens(const std::vector<llama_token>& tokens);
 };

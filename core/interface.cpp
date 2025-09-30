@@ -3,7 +3,12 @@
 #include <iostream>
 #include <thread>
 #include <algorithm>
-#define EXPORT _declspec(dllexport)
+
+#ifdef _WIN32
+#define EXPORT __declspec(dllexport)
+#else
+#define EXPORT
+#endif
 
 extern "C" {
     // C-style factory functions
@@ -40,10 +45,7 @@ Interface::Interface(const std::string& modelPath) {
     config.ctx = n_ctx_train;
     config.batch = n_ctx_train;  // Set batch to match context for maximum efficiency
 
-    // Set thread defaults
     setThreadDefaults();
-
-    // Complete initialization
     initializeContext();
 }
 
@@ -69,9 +71,7 @@ void Interface::loadModel(const std::string& modelPath) {
 
 void Interface::setThreadDefaults() {
     unsigned int maxThreads = std::thread::hardware_concurrency();
-    // if (maxThreads <= 2) config.threads = 1;
-    // else config.threads = maxThreads / 2;
-    config.threads = maxThreads;
+    if (maxThreads > 0) config.threads = maxThreads;
 }
 
 void Interface::initializeContext() {
@@ -93,6 +93,7 @@ void Interface::initializeContext() {
         throw std::runtime_error("Failed to get memory handle");
     }
 
+    // Initialize sampler chain
     auto sparams = llama_sampler_chain_default_params();
     sampler = llama_sampler_chain_init(sparams);
 
@@ -163,19 +164,16 @@ void Interface::shiftContext(int tokens_to_remove) {
     std::cout << "Shifting context: removing " << tokens_to_remove
               << " tokens from " << n_past << " total" << std::endl;
 
-    // Remove tokens from the beginning of the sequence
+    // Remove tokens from the beginning of the sequence using the memory API
     llama_memory_seq_rm(memory, MAIN_SEQ, 0, tokens_to_remove);
 
-    // Update our tracking
+    // Update position tracking
     n_past -= tokens_to_remove;
 
     // Remove corresponding tokens from history
     for (int i = 0; i < tokens_to_remove && !token_history.empty(); i++) {
         token_history.pop_front();
     }
-
-    // Note: RoPE positions are automatically handled by llama.cpp
-    // The remaining tokens will have their positions adjusted
 }
 
 void Interface::evaluateTokens(const std::vector<llama_token>& tokens) {
@@ -198,14 +196,15 @@ void Interface::evaluateTokens(const std::vector<llama_token>& tokens) {
     }
 }
 
-std::string Interface::sampleTokens(bool& should_stop) {
+std::string Interface::sampleTokens(bool& should_stop, bool is_first) {
     std::string result;
 
     llama_token new_token_id = llama_sampler_sample(sampler, ctx, -1);
     llama_sampler_accept(sampler, new_token_id);
 
     char buf[128];
-    int n_chars = llama_token_to_piece(vocab, new_token_id, buf, sizeof(buf), 0, true);
+    int lstrip = is_first ? 1 : 0;
+    int n_chars = llama_token_to_piece(vocab, new_token_id, buf, sizeof(buf), lstrip, true);
     if (n_chars < 0) {
         throw std::runtime_error("Failed to convert token to text");
     }
@@ -246,7 +245,9 @@ void Interface::clearContext() {
 }
 
 int Interface::getContextUsage() {
-    return n_past;
+    // Use the memory API to get actual usage
+    llama_pos pos = llama_memory_seq_pos_max(memory, MAIN_SEQ);
+    return pos >= 0 ? pos + 1 : 0;
 }
 
 int Interface::getContextSize() {
@@ -283,12 +284,12 @@ std::string Interface::generate(const std::string& prompt) {
 
     for (int i = 0; i < config.max_tokens && !should_stop; i++) {
         // Check if we're approaching context limit during generation
-        if (n_past >= config.ctx - 10) {
+        if (n_past >= config.ctx - 2) {
             std::cout << "Warning: Approaching context limit during generation" << std::endl;
             break;
         }
 
-        std::string token_str = sampleTokens(should_stop);
+        std::string token_str = sampleTokens(should_stop, i == 0);
         result += token_str;
     }
 
