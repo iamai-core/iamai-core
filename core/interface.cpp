@@ -69,8 +69,9 @@ void Interface::loadModel(const std::string& modelPath) {
 
 void Interface::setThreadDefaults() {
     unsigned int maxThreads = std::thread::hardware_concurrency();
-    if (maxThreads <= 2) config.threads = 1;
-    else config.threads = maxThreads / 2;
+    // if (maxThreads <= 2) config.threads = 1;
+    // else config.threads = maxThreads / 2;
+    config.threads = maxThreads;
 }
 
 void Interface::initializeContext() {

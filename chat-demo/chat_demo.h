@@ -74,9 +74,9 @@ private:
     int tokensGenerated = 0;
 
     // Settings
-    int maxTokens = 256;
+    int maxTokens = 64;
     float temperature = 0.7f;
-    bool usePromptFormat = true;
+    bool usePromptFormat = false;
 
     std::vector<std::string> quickPrompts = {
         "Tell me about yourself",

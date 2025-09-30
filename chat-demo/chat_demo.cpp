@@ -27,8 +27,8 @@ ChatDemo::ChatDemo() {
     refreshModelList();
 
     messages.emplace_back("Welcome to iamai-core! I'm your personal AI companion running locally on your device. "
-                         "Your conversations are completely private - no data leaves your computer. "
-                         "Ask me anything, and let's explore what local AI can do!", false);
+                         "Your conversations are completely private - no data leaves your computer.\n\n"
+                         "Select a model then ask me anything. Let's explore what local AI can do!", false);
 }
 
 size_t ChatDemo::WriteCallback(void* contents, size_t size, size_t nmemb, void* userp) {
