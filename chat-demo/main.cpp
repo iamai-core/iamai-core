@@ -51,11 +51,11 @@ int main(int argc, char* argv[]) {
         auto& folder_manager = iamai::FolderManager::getInstance();
         folder_manager.createFolderStructure(); // Ensure directories exist
 
-        static std::string ini_path = (folder_manager.getConfigPath() / "chat-demo.ini").string();
+        static std::string ini_path = (folder_manager.getConfigPath() / "chat-demo-gui.ini").string();
         io.IniFilename = ini_path.c_str();
     } catch (const std::exception& e) {
         std::cerr << "Warning: Failed to set config path, using default: " << e.what() << std::endl;
-        io.IniFilename = "chat-demo.ini"; // Fallback to current directory
+        io.IniFilename = "chat-demo-gui.ini"; // Fallback to current directory
     }
 
     float dpiScale = 1.0f;

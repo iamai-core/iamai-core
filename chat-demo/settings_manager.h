@@ -1,14 +1,13 @@
 #ifndef SETTINGS_MANAGER_H
 #define SETTINGS_MANAGER_H
 
-#include "imgui.h"
-#include "imgui_internal.h"
 #include <string>
 #include <unordered_map>
+#include <filesystem>
 
 class SettingsManager {
 public:
-    SettingsManager(const std::string& typeName);
+    SettingsManager(const std::filesystem::path& iniFilePath);
     ~SettingsManager();
 
     void setInt(const std::string& key, int value);
@@ -22,17 +21,12 @@ public:
     std::string getString(const std::string& key, const std::string& defaultValue = "");
 
 private:
-    std::string typeName;
-    ImGuiID typeHash;
+    std::filesystem::path iniFilePath;
     std::unordered_map<std::string, std::string> settings;
 
-    static void* ReadOpenFn(ImGuiContext* ctx, ImGuiSettingsHandler* handler, const char* name);
-    static void ReadLineFn(ImGuiContext* ctx, ImGuiSettingsHandler* handler, void* entry, const char* line);
-    static void WriteAllFn(ImGuiContext* ctx, ImGuiSettingsHandler* handler, ImGuiTextBuffer* buf);
-
-    void* readOpen(const char* name);
-    void readLine(void* entry, const char* line);
-    void writeAll(ImGuiTextBuffer* buf);
+    void loadFromFile();
+    void saveToFile();
+    std::string trim(const std::string& str);
 };
 
 #endif // SETTINGS_MANAGER_H

@@ -98,5 +98,6 @@ Desktop.ini
 
 ## Project specific
 models/
-iamai.ini
+chat-demo.ini
+chat-demo-gui.ini
 *.p12

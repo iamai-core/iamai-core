@@ -73,7 +73,7 @@ private:
     double lastGenTime = 0.0;
     int tokensGenerated = 0;
 
-    // Settings
+    // Default settings
     int maxTokens = 64;
     float temperature = 0.7f;
     bool usePromptFormat = false;

@@ -19,9 +19,12 @@ ChatMessage::ChatMessage(const std::string& msg, bool user)
     : text(msg), isUser(user), timestamp(std::chrono::system_clock::now()) {}
 
 ChatDemo::ChatDemo() {
-    settingsManager = std::make_unique<SettingsManager>("ChatDemo");
-
     auto& folder_manager = iamai::FolderManager::getInstance();
+
+    // Get settings file path from folder manager
+    std::filesystem::path settingsPath = folder_manager.getConfigPath() / "chat-demo.ini";
+    settingsManager = std::make_unique<SettingsManager>(settingsPath);
+    loadSettings();
 
     modelManager = std::make_unique<iamai::ModelManager>();
     refreshModelList();
@@ -207,8 +210,6 @@ void ChatDemo::Update() {
 }
 
 void ChatDemo::RenderChatInitial(SDL_Window* window) {
-    loadSettings();
-
     if (ImGui::Begin("iamai-core Chat Demo", nullptr, 0)) {
         ImVec2 windowSize = ImGui::GetWindowSize();
         if (windowSize.x > 320.0f || windowSize.y > 240.0f) {
