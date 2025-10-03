@@ -300,7 +300,7 @@ void ChatDemo::RenderInput() {
         if (i > 0) ImGui::SameLine();
 
         std::string buttonId = "##quick" + std::to_string(i);
-        if (ImGui::SmallButton((quickPrompts[i].substr(0, 15) + "...").c_str())) {
+        if (ImGui::SmallButton((quickPrompts[i].substr(0, 16) + "...").c_str())) {
             if (!isGenerating) {
                 strcpy_s(inputBuffer, sizeof(inputBuffer), quickPrompts[i].c_str());
             }

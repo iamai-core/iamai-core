@@ -64,7 +64,7 @@ private:
     // Model management
     std::vector<std::string> availableModels;
     std::string currentLoadedModel;
-    char downloadUrlBuffer[1024] = "https://huggingface.co/unsloth/Llama-3.2-1B-Instruct-GGUF/resolve/main/Llama-3.2-1B-Instruct-Q4_K_M.gguf?download=true";
+    char downloadUrlBuffer[1024] = "https://huggingface.co/unsloth/gemma-3-270m-it-GGUF/resolve/main/gemma-3-270m-it-Q4_K_M.gguf?download=true";
     DownloadProgress downloadProgress;
     std::future<bool> downloadFuture;
 
@@ -78,13 +78,17 @@ private:
     float temperature = 0.7f;
     bool usePromptFormat = false;
 
+    std::string welcomeMessage = "Welcome to iamai-core! I'm your personal AI companion running locally on your device. "
+                                 "Your conversations are completely private - no data leaves your computer.\n\n"
+                                 "Select a model then ask me anything. Let's explore what local AI can do!";
+
     std::vector<std::string> quickPrompts = {
         "Tell me about yourself.",
-        "What can you help me with?",
-        "Explain quantum computing in simple terms.",
         "Write a short story about AI.",
         "What are the benefits of local AI?",
-        "How does machine learning work?"
+        "How does machine learning work?",
+        "How many R's in strawberry?",
+        "Code Fibonacci in C/C++."
     };
 
     // Helper methods
