@@ -44,8 +44,8 @@ Interface::Interface(const std::string& modelPath) {
     int n_ctx_train = llama_model_n_ctx_train(model);
     config.ctx = n_ctx_train;
     config.batch = n_ctx_train;  // Set batch to match context for maximum efficiency
-
     setThreadDefaults();
+
     initializeContext();
 }
 
@@ -67,6 +67,39 @@ void Interface::loadModel(const std::string& modelPath) {
     }
 
     vocab = llama_model_get_vocab(model);
+
+    // Check if model has a chat template
+    const char* template_str = llama_model_chat_template(model, nullptr);
+    hasTemplate = (template_str != nullptr);
+    if (hasTemplate) chatTemplate = template_str;
+
+    // Extract role marker from template and tokenize it
+    if (hasTemplate) {
+        std::string stop_string;
+
+        // Find the pattern for starting a new role
+        if (chatTemplate.find("<|start_header_id|>") != std::string::npos) {
+            stop_string = "<|start_header_id|>";
+        } else if (chatTemplate.find("<|im_start|>") != std::string::npos) {
+            stop_string = "<|im_start|>";
+        } else if (chatTemplate.find("<start_of_turn>") != std::string::npos) {
+            stop_string = "<start_of_turn>";
+        } else if (chatTemplate.find("<|user|>") != std::string::npos) {
+            stop_string = "<|user|>";
+        } else if (chatTemplate.find("<|assistant|>") != std::string::npos) {
+            stop_string = "<|user|>";
+        } else if (chatTemplate.find("<｜User｜>") != std::string::npos) {
+            stop_string = "<｜User｜>";
+        }
+
+        // Tokenize the stop string to get its token ID
+        if (!stop_string.empty()) {
+            auto stop_tokens = tokenize(stop_string, false, true);  // parse_special=true
+            if (!stop_tokens.empty()) {
+                stop_token = stop_tokens[0];  // Usually a single token
+            }
+        }
+    }
 }
 
 void Interface::setThreadDefaults() {
@@ -119,11 +152,11 @@ Interface::~Interface() {
     }
 }
 
-std::vector<llama_token> Interface::tokenize(const std::string& text, bool add_bos) {
-    int n_tokens = -llama_tokenize(vocab, text.c_str(), text.length(), NULL, 0, add_bos, false);
+std::vector<llama_token> Interface::tokenize(const std::string& text, bool add_bos, bool parse_special) {
+    int n_tokens = -llama_tokenize(vocab, text.c_str(), text.length(), NULL, 0, add_bos, parse_special);
     std::vector<llama_token> tokens(n_tokens);
 
-    if (llama_tokenize(vocab, text.c_str(), text.length(), tokens.data(), tokens.size(), add_bos, false) < 0) {
+    if (llama_tokenize(vocab, text.c_str(), text.length(), tokens.data(), tokens.size(), add_bos, parse_special) < 0) {
         throw std::runtime_error("Tokenization failed");
     }
 
@@ -202,16 +235,25 @@ std::string Interface::sampleTokens(bool& should_stop, bool is_first) {
     llama_token new_token_id = llama_sampler_sample(sampler, ctx, -1);
     llama_sampler_accept(sampler, new_token_id);
 
+    // Check for EOG tokens
+    if (llama_vocab_is_eog(vocab, new_token_id)) {
+        should_stop = true;
+        return result;
+    }
+
+    // Check for role marker token (if using chat template)
+    if (formatPrompt && hasTemplate &&
+        stop_token != LLAMA_TOKEN_NULL &&
+        new_token_id == stop_token) {
+        should_stop = true;
+        return result;
+    }
+
     char buf[128];
     int lstrip = is_first ? 1 : 0;
     int n_chars = llama_token_to_piece(vocab, new_token_id, buf, sizeof(buf), lstrip, true);
     if (n_chars < 0) {
         throw std::runtime_error("Failed to convert token to text");
-    }
-
-    if (llama_vocab_is_eog(vocab, new_token_id)) {
-        should_stop = true;
-        return result;
     }
 
     result.append(buf, n_chars);
@@ -224,17 +266,13 @@ std::string Interface::sampleTokens(bool& should_stop, bool is_first) {
 }
 
 void Interface::setPromptFormat(const std::string& promptFormat) {
-    if (promptFormat.empty()) {
-        clearPromptFormat();
-        return;
+    if (hasTemplate) {
+        formatPrompt = true;
     }
-    formatPrompt = true;
-    this->promptFormat = promptFormat;
 }
 
 void Interface::clearPromptFormat() {
     formatPrompt = false;
-    promptFormat = "";
 }
 
 void Interface::clearContext() {
@@ -254,23 +292,41 @@ int Interface::getContextSize() {
     return config.ctx;
 }
 
-void Interface::formatNewPrompt(const std::string& input, std::string& output) {
-    output = promptFormat;
-    const std::string placeholder = "{prompt}";
-    size_t pos = output.find(placeholder);
-    if (pos != std::string::npos) {
-        output.replace(pos, placeholder.length(), input);
+std::string Interface::applyChatTemplate(const std::string& userMessage) {
+    // Create a single message for the current user input
+    llama_chat_message msg = {"user", userMessage.c_str()};
+
+    // Apply template to just this one message
+    std::vector<char> formatted(config.ctx);
+    int new_len = llama_chat_apply_template(
+        chatTemplate.c_str(),  // Use the model's chat template
+        &msg,
+        1,        // Just one message
+        true,     // Add assistant token
+        formatted.data(),
+        formatted.size()
+    );
+
+    if (new_len < 0) {
+        throw std::runtime_error("Failed to apply chat template");
     }
+
+    return std::string(formatted.begin(), formatted.begin() + new_len);
 }
 
 std::string Interface::generate(const std::string& prompt) {
-    std::string formattedPrompt = prompt;
-    if (formatPrompt) {
-        formatNewPrompt(prompt, formattedPrompt);
+    // Check if we should use chat template formatting
+    bool use_chat_template = formatPrompt && hasTemplate;
+
+    std::string formattedPrompt;
+    if (use_chat_template) {
+        formattedPrompt = applyChatTemplate(prompt);
+    } else {
+        formattedPrompt = prompt;
     }
 
-    // Tokenize the new prompt
-    std::vector<llama_token> new_tokens = tokenize(formattedPrompt, n_past == 0);
+    // Tokenize the new prompt (parse special tokens when using chat templates)
+    std::vector<llama_token> new_tokens = tokenize(formattedPrompt, n_past == 0, use_chat_template);
 
     // Manage context to make room for new tokens + generation
     manageContext(new_tokens);

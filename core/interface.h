@@ -49,7 +49,9 @@ private:
     llama_memory_t memory = nullptr;
 
     bool formatPrompt = false;
-    std::string promptFormat = "";
+    bool hasTemplate = false;
+    std::string chatTemplate;  // Store the chat template string
+    llama_token stop_token = LLAMA_TOKEN_NULL;  // Stop token for chat templates
 
     // KV cache state tracking
     int n_past = 0;                    // Current position in context
@@ -59,7 +61,7 @@ private:
     void loadModel(const std::string& modelPath);     // Pure model loading
     void setThreadDefaults();                         // Set default thread count
     void initializeContext();  // Context and sampler setup
-    void formatNewPrompt(const std::string& input, std::string& output);
+    std::string applyChatTemplate(const std::string& userMessage);
 
     // Enhanced context management
     void manageContext(const std::vector<llama_token>& new_tokens);
@@ -68,7 +70,7 @@ private:
 
     // Helper methods
     std::string sampleTokens(bool& should_stop, bool is_first);
-    std::vector<llama_token> tokenize(const std::string& text, bool add_bos = true);
+    std::vector<llama_token> tokenize(const std::string& text, bool add_bos = true, bool parse_special = false);
     void evaluateTokens(const std::vector<llama_token>& tokens);
 };
 
