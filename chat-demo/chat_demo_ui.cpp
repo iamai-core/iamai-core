@@ -87,7 +87,7 @@ void ChatDemo::RenderModelsDropdown() {
     // Set fixed window size with 10px margins
     ImVec2 windowSize = ImGui::GetIO().DisplaySize;
     float margin = 10.0f;
-    ImVec2 popupSize = ImVec2(windowSize.x - (margin * 2), 400.0f);
+    ImVec2 popupSize = ImVec2(windowSize.x - (margin * 2), windowSize.y - (40 + margin));
 
     ImGuiWindowFlags popup_flags = ImGuiWindowFlags_NoMove |
                                   ImGuiWindowFlags_NoResize |
@@ -166,7 +166,7 @@ void ChatDemo::RenderModelsDropdown() {
         }
 
         // Create a child window for the model list to handle scrolling
-        if (ImGui::BeginChild("ModelList", ImVec2(0, 200), ImGuiChildFlags_Border)) {
+        if (ImGui::BeginChild("ModelList", ImVec2(0, -40), ImGuiChildFlags_Border)) {
             for (const auto& model : availableModels) {
                 // Create a unique ID for each model row
                 ImGui::PushID(model.c_str());
@@ -261,8 +261,8 @@ void ChatDemo::RenderMessages() {
             } else {
                 ImGui::TextColored(ImVec4(0.8f, 1.0f, 0.6f, 1.0f), "AI Companion");
 
-                ImGui::SameLine(ImGui::GetWindowWidth() - 60);
-                std::string copyButtonId = "Copy##" + std::to_string(i);
+                ImGui::SameLine(ImGui::GetWindowWidth() - 50);
+                std::string copyButtonId = "📋##" + std::to_string(i);
                 if (ImGui::SmallButton(copyButtonId.c_str())) {
                     SDL_SetClipboardText(msg.text.c_str());
                 }
@@ -277,10 +277,12 @@ void ChatDemo::RenderMessages() {
             ImGui::TextWrapped("%s", msg.text.c_str());
             ImGui::PopTextWrapPos();
 
-            auto time_t = std::chrono::system_clock::to_time_t(msg.timestamp);
-            ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.6f, 0.6f, 0.6f, 1.0f));
-            ImGui::Text("%.24s", std::ctime(&time_t));
-            ImGui::PopStyleColor();
+            // auto time_t = std::chrono::system_clock::to_time_t(msg.timestamp);
+            // ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.6f, 0.6f, 0.6f, 1.0f));
+            // ImGui::SetWindowFontScale(0.75f);
+            // ImGui::Text("%.24s", std::ctime(&time_t));
+            // ImGui::SetWindowFontScale(1.0f);
+            // ImGui::PopStyleColor();
         }
         ImGui::EndChild();
         ImGui::PopStyleColor();
@@ -296,21 +298,26 @@ void ChatDemo::RenderMessages() {
 
 void ChatDemo::RenderInput() {
     ImGui::Text("Quick prompts:");
+
+    ImGui::SetWindowFontScale(0.75f);
     for (size_t i = 0; i < quickPrompts.size(); ++i) {
         if (i > 0) ImGui::SameLine();
 
         std::string buttonId = "##quick" + std::to_string(i);
-        if (ImGui::SmallButton((quickPrompts[i].substr(0, 16) + "...").c_str())) {
-            if (!isGenerating) {
-                strcpy_s(inputBuffer, sizeof(inputBuffer), quickPrompts[i].c_str());
-            }
+        if (ImGui::SmallButton((quickPrompts[i].substr(0, 18) + "...").c_str())) {
+            strcpy_s(inputBuffer, sizeof(inputBuffer), quickPrompts[i].c_str());
         }
         if (ImGui::IsItemHovered()) {
             ImGui::SetTooltip("%s", quickPrompts[i].c_str());
         }
     }
+    ImGui::SetWindowFontScale(1.0f);
 
     ImGui::Spacing();
+
+    if (!ImGui::IsAnyItemActive() && !ImGui::IsAnyItemFocused()) {
+        ImGui::SetKeyboardFocusHere(0);
+    }
 
     ImGui::PushItemWidth(-80);
     bool enterPressed = ImGui::InputText("##input", inputBuffer, sizeof(inputBuffer),
@@ -325,9 +332,6 @@ void ChatDemo::RenderInput() {
         memset(inputBuffer, 0, sizeof(inputBuffer));
     }
 
-    if (!isGenerating && !ImGui::IsAnyItemActive()) {
-        ImGui::SetKeyboardFocusHere(-1);
-    }
 }
 
 void ChatDemo::RenderSettingsDropdown() {
@@ -393,10 +397,8 @@ void ChatDemo::RenderAboutDropdown() {
         ImGui::TextWrapped("iamai-core - Personal AI, Simply Yours");
         ImGui::Separator();
 
-        ImGui::PushTextWrapPos(350.0f);
         ImGui::TextWrapped("iamai-core is an open-source personal AI that runs entirely on your device. "
                          "No cloud services, no data sharing - just download and start.");
-        ImGui::PopTextWrapPos();
 
         ImGui::Spacing();
         ImGui::Text("Key Features:");

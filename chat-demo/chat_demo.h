@@ -88,7 +88,8 @@ private:
         "What are the benefits of local AI?",
         "How does machine learning work?",
         "How many R's in strawberry?",
-        "Code Fibonacci in C/C++."
+        "Code Fibonacci in C/C++.",
+        "Say 'hello' in Chinese."
     };
 
     // Helper methods

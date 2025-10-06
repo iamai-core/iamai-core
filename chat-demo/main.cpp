@@ -46,18 +46,19 @@ int main(int argc, char* argv[]) {
     ImGuiIO& io = ImGui::GetIO(); (void)io;
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 
+    auto& folder_manager = iamai::FolderManager::getInstance();
+
     // Set ImGui ini file path to config directory
     try {
-        auto& folder_manager = iamai::FolderManager::getInstance();
         folder_manager.createFolderStructure(); // Ensure directories exist
-
-        static std::string ini_path = (folder_manager.getConfigPath() / "chat-demo-gui.ini").string();
+        static const std::string ini_path = (folder_manager.getConfigPath() / "chat-demo-gui.ini").string();
         io.IniFilename = ini_path.c_str();
     } catch (const std::exception& e) {
-        std::cerr << "Warning: Failed to set config path, using default: " << e.what() << std::endl;
+        std::cerr << "Warning: Failed to set config path, using default ini: " << e.what() << std::endl;
         io.IniFilename = "chat-demo-gui.ini"; // Fallback to current directory
     }
 
+    // Get screen scale to scale UI elements
     float dpiScale = 1.0f;
     SDL_DisplayID displayID = SDL_GetDisplayForWindow(window);
     if (displayID != 0) {
@@ -69,15 +70,72 @@ int main(int argc, char* argv[]) {
         }
     }
 
+    // Scale all UI elements
     if (dpiScale > 1.0f) {
         ImGui::GetStyle().ScaleAllSizes(dpiScale);
+    }
 
-        ImFontConfig fontConfig;
-        fontConfig.OversampleH = 2;
-        fontConfig.OversampleV = 2;
+    // Try to load fonts
+    ImFontConfig fontConfig;
+    fontConfig.OversampleH = 2;
+    fontConfig.OversampleV = 2;
+
+    std::filesystem::path libsPath = folder_manager.getRuntimeLibsPath();
+    const char* fonts[] = {
+        "NotoSansSC-Regular.ttf",
+        "NotoSansJP-Regular.ttf",
+        "NotoSans-Regular.ttf",
+        "NotoSerifSC-Regular.ttf",
+        "NotoSansSC-SemiBold.ttf",
+        nullptr
+    };
+
+    bool fontLoaded = false;
+    for (int i = 0; fonts[i] != nullptr; ++i) {
+        std::filesystem::path fullPath = libsPath / fonts[i];
+
+        if (std::filesystem::exists(fullPath)) {
+            std::string pathStr = fullPath.string();
+            ImFont* font = io.Fonts->AddFontFromFileTTF(
+                pathStr.c_str(),
+                22.0f * dpiScale,
+                &fontConfig,
+                nullptr
+            );
+            if (font) {
+                fontLoaded = true;
+                std::cout << "Loaded font: " << fullPath << std::endl;
+                break;
+            }
+        }
+    }
+
+    if (!fontLoaded) {
+        std::cerr << "Warning: Could not load Unicode font, using default" << std::endl;
         fontConfig.SizePixels = 16.0f * dpiScale;
         io.Fonts->AddFontDefault(&fontConfig);
     }
+
+    ImFontConfig emojiConfig;
+    emojiConfig.OversampleH = 2;
+    emojiConfig.OversampleV = 2;
+    emojiConfig.MergeMode = true;  // Merge into previous font
+
+    std::filesystem::path emoji_path = (folder_manager.getRuntimeLibsPath() / "NotoEmoji-Regular.ttf");
+    std::string emoji_path_str = emoji_path.string();
+
+    if (std::filesystem::exists(emoji_path)) {
+        ImFont* emoji_font = io.Fonts->AddFontFromFileTTF(
+            emoji_path_str.c_str(),
+            18.0f * dpiScale,
+            &emojiConfig,
+            nullptr
+        );
+        if (emoji_font) {
+            std::cout << "Loaded emoji: " << emoji_path << std::endl;
+        }
+    }
+
 
     ImGui::StyleColorsDark();
     ImGuiStyle& style = ImGui::GetStyle();

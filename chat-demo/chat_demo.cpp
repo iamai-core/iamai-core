@@ -233,9 +233,9 @@ void ChatDemo::RenderChat() {
 
         float headerHeight = ImGui::GetCursorPosY();
         float inputHeight = 80.0f;
-        float chatHeight = windowSize.y - headerHeight - inputHeight - 20.0f;
+        float chatHeight = windowSize.y - headerHeight - inputHeight - 40.0f;
 
-        if (ImGui::BeginChild("ChatHistory", ImVec2(0, chatHeight), ImGuiChildFlags_Border, ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
+        if (ImGui::BeginChild("ChatHistory", ImVec2(0, -110), ImGuiChildFlags_Border, ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
             RenderMessages();
         }
         ImGui::EndChild();

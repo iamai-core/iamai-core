@@ -80,7 +80,8 @@ target_include_directories(imgui PUBLIC
 )
 # Link ImGui with SDL3
 target_link_libraries(imgui PUBLIC SDL3::SDL3)
-
+# For 32bit Unicode fonts
+target_compile_definitions(imgui PUBLIC IMGUI_USE_WCHAR32)
 
 # Chat demo executable
 add_executable(chat-demo
