@@ -38,6 +38,7 @@ bool ModelManager::switchModel(const std::string& model_name) {
             return false;
         }
 
+        std::cout << "....................................................................................." << std::endl;
         auto new_model = std::make_unique<Interface>(model_path.string());
 
         current_model = std::move(new_model);

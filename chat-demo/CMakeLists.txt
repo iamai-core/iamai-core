@@ -1,10 +1,22 @@
 # Chat Demo
-
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+
+# Static link MSVC runtime
+if(MSVC)
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+endif()
+
+# build llama.cpp
+# option(GGML_VULKAN                          "ggml: use Vulkan"                                ON)
+# option(GGML_CUDA                            "ggml: use CUDA"                                  ON)
+# option(GGML_CUDA_F16                        "ggml: use 16 bit floats for some calculations"   ON)
+# option(GGML_METAL                           "ggml: use Metal"                                 ON)
+# option(GGML_METAL_USE_BF16                  "ggml: use bfloat if available"                   ON)
 
 option(BUILD_SHARED_LIBS "build shared libraries" OFF)
 add_subdirectory(${CMAKE_SOURCE_DIR}/llama.cpp ${CMAKE_BINARY_DIR}/llama.cpp-build)
 
+# build SDL
 option(SDL_TEST_LIBRARY "Build the SDL3_test library" OFF)
 option(SDL_SHARED "Build SDL3 shared library" OFF)
 option(SDL_STATIC "Build SDL3 static library" ON)

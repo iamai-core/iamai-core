@@ -1,7 +1,12 @@
 # Core
-
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
+# Static link MSVC runtime
+if(MSVC)
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+endif()
+
+# build llama.cpp
 # # Copy CUDA DLLs from CUDA installation directory to output directory
 # set(CUDA_DLL_VERSION "12")
 # add_custom_target(copy_cuda_dlls ALL
