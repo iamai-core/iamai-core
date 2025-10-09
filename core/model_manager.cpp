@@ -4,6 +4,7 @@
 #include <iostream>
 #include <stdexcept>
 #include <filesystem>
+#include <thread>
 
 namespace iamai {
 
@@ -39,6 +40,9 @@ bool ModelManager::switchModel(const std::string& model_name) {
         }
 
         std::cout << "....................................................................................." << std::endl;
+        if (current_model) current_model.reset();
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
         auto new_model = std::make_unique<Interface>(model_path.string());
 
         current_model = std::move(new_model);

@@ -12,6 +12,7 @@ endif()
 # option(GGML_CUDA_F16                        "ggml: use 16 bit floats for some calculations"   ON)
 # option(GGML_METAL                           "ggml: use Metal"                                 ON)
 # option(GGML_METAL_USE_BF16                  "ggml: use bfloat if available"                   ON)
+# option(GGML_OPENCL                          "ggml: use OpenCL"                                ON) # RTX 3090 unsupported
 
 option(BUILD_SHARED_LIBS "build shared libraries" OFF)
 add_subdirectory(${CMAKE_SOURCE_DIR}/llama.cpp ${CMAKE_BINARY_DIR}/llama.cpp-build)

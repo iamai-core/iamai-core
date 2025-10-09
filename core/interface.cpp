@@ -57,9 +57,11 @@ Interface::Interface(const std::string& modelPath, Config config) {
 
 void Interface::loadModel(const std::string& modelPath) {
     ggml_backend_load_all();
+    // llama_backend_init();
 
     auto model_params = llama_model_default_params();
-    model_params.n_gpu_layers = 0;
+    // model_params.n_gpu_layers = 999;
+    // model_params.split_mode = LLAMA_SPLIT_MODE_NONE;
 
     model = llama_model_load_from_file(modelPath.c_str(), model_params);
     if (model == NULL) {
@@ -111,6 +113,7 @@ void Interface::initializeContext() {
     auto ctx_params = llama_context_default_params();
     ctx_params.n_ctx = config.ctx;
     ctx_params.n_batch = config.batch;
+    ctx_params.n_ubatch = 2048;
     ctx_params.n_threads = config.threads;
     ctx_params.n_threads_batch = config.threads;
 
@@ -141,6 +144,9 @@ void Interface::initializeContext() {
 }
 
 Interface::~Interface() {
+    if (ctx != NULL) {
+        llama_synchronize(ctx);  // Wait for all GPU operations to complete
+    }
     if (sampler != NULL) {
         llama_sampler_free(sampler);
     }
@@ -150,6 +156,7 @@ Interface::~Interface() {
     if (model != NULL) {
         llama_model_free(model);
     }
+    llama_backend_free();
 }
 
 std::vector<llama_token> Interface::tokenize(const std::string& text, bool add_bos, bool parse_special) {
